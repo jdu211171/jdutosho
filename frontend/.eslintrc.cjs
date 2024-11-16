@@ -28,7 +28,7 @@ module.exports = {
     // React
     {
       files: ["**/*.{js,jsx,ts,tsx}"],
-      plugins: ["react", "jsx-a11y"],
+      plugins: ["react", "jsx-a11y", "prettier"],
       extends: [
         "plugin:react/recommended",
         "plugin:react/jsx-runtime",
@@ -41,8 +41,8 @@ module.exports = {
         },
         formComponents: ["Form"],
         linkComponents: [
-          { name: "Link", linkAttribute: "to" },
-          { name: "NavLink", linkAttribute: "to" },
+          {name: "Link", linkAttribute: "to"},
+          {name: "NavLink", linkAttribute: "to"},
         ],
         "import/resolver": {
           typescript: {},
@@ -53,8 +53,11 @@ module.exports = {
     // Typescript
     {
       files: ["**/*.{ts,tsx}"],
-      plugins: ["@typescript-eslint", "import"],
+      plugins: ["@typescript-eslint", "import", "@typescript-eslint", "prettier"],
       parser: "@typescript-eslint/parser",
+      rules: {
+        "prettier/prettier": "error",
+      },
       settings: {
         "import/internal-regex": "^~/",
         "import/resolver": {
@@ -70,6 +73,8 @@ module.exports = {
         "plugin:@typescript-eslint/recommended",
         "plugin:import/recommended",
         "plugin:import/typescript",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:prettier/recommended",
       ],
     },
 
