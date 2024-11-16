@@ -5,7 +5,12 @@ export interface User {
 	role: 'librarian' | 'student'
 }
 
-export interface LoginResponse {
+export interface SessionData {
 	token: string
 	user: User
+}
+
+export type SessionFlashData = {
+	error: string
+	success: string
 }

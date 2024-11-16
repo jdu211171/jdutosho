@@ -16,7 +16,7 @@ import {
 	useTheme,
 } from 'remix-themes'
 import { LoaderFunction, useLoaderData } from 'react-router'
-import { themeSessionResolver } from '~/sessions.server'
+import { themeSessionResolver } from '~/services/theme.server'
 import { SidebarProvider } from '~/components/ui/sidebar'
 
 export const links: LinksFunction = () => [

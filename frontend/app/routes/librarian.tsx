@@ -10,11 +10,11 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from '~/components/ui/breadcrumb'
-import { requireLibrarianAuth } from '~/lib/utils/auth'
 import { LoaderFunction } from 'react-router'
+import { requireLibrarianUser } from '~/services/auth.server'
 
 export const loader: LoaderFunction = async ({ request }) => {
-	const { user } = await requireLibrarianAuth(request)
+	const { user } = await requireLibrarianUser(request)
 	return json({ user })
 }
 

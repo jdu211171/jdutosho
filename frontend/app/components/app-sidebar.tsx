@@ -3,13 +3,13 @@ import {
 	AudioWaveform,
 	Book,
 	BookOpen,
-	Bot,
 	Command,
 	Frame,
 	GalleryVerticalEnd,
 	Map,
 	PieChart,
 	Settings2,
+	UsersRound,
 } from 'lucide-react'
 
 import { NavMain } from '~/components/nav-main'
@@ -70,20 +70,12 @@ const data = {
 			],
 		},
 		{
-			title: 'Models',
+			title: 'Students',
 			url: '#',
-			icon: Bot,
+			icon: UsersRound,
 			items: [
 				{
-					title: 'Genesis',
-					url: '#',
-				},
-				{
-					title: 'Explorer',
-					url: '#',
-				},
-				{
-					title: 'Quantum',
+					title: 'Create',
 					url: '#',
 				},
 			],

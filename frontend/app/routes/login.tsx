@@ -10,13 +10,13 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Form, json, Link, useNavigation } from '@remix-run/react'
 import { ActionFunctionArgs } from '@remix-run/node'
-import { LoginResponse } from '~/types/auth'
 import axios, { isAxiosError } from 'axios'
-import { createUserSession } from '~/lib/utils/auth.server'
 import { useActionData } from 'react-router'
 import { LoginFormData, loginSchema } from '~/lib/utils/validation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { SessionData } from '~/types/auth'
+import { createUserSession } from '~/services/auth.server'
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
@@ -24,7 +24,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	const password = formData.get('password')
 
 	try {
-		const response = await axios.post<LoginResponse>(
+		const response = await axios.post<SessionData>(
 			`${process.env.API_URL}/login`,
 			{ loginID, password }
 		)

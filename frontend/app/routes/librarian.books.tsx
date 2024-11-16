@@ -1,9 +1,9 @@
 import { DataTable } from '~/components/tasks/data-table'
 import { columns } from '~/components/tasks/columns'
-import { useLoaderData } from '@remix-run/react'
 import { ActionFunctionArgs, json } from '@remix-run/node'
 import { api } from '~/lib/utils/api'
-import { sessionStorage } from '~/lib/utils/auth.server'
+import { getSessionToken } from 'app/services/auth.server'
+import { useLoaderData } from '@remix-run/react'
 
 export const metadata = {
 	title: 'Tasks',
@@ -12,8 +12,7 @@ export const metadata = {
 
 export const loader = async ({ request }: ActionFunctionArgs) => {
 	const url = new URL(request.url)
-	const session = await sessionStorage.getSession()
-	const token = session.get('token')
+	const token = await getSessionToken(request)
 	const page = url.searchParams.get('page') || '1'
 	try {
 		const response = await api.get(`/books?page=${page}`, {

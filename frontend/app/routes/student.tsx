@@ -2,10 +2,10 @@ import { json, Outlet } from '@remix-run/react'
 import { AppSidebar } from '~/components/app-sidebar'
 import { SidebarTrigger } from '~/components/ui/sidebar'
 import { LoaderFunction } from 'react-router'
-import { requireStudentAuth } from '~/lib/utils/auth'
+import { requireLibrarianUser } from '~/services/auth.server'
 
 export const loader: LoaderFunction = async ({ request }) => {
-	const { user } = await requireStudentAuth(request)
+	const { user } = await requireLibrarianUser(request)
 	return json({ user })
 }
 
