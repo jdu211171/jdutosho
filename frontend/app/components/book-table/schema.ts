@@ -9,4 +9,12 @@ export const bookSchema = z.object({
 	count: z.number(),
 })
 
+export const booksResponseSchema = z.object({
+	data: z.array(bookSchema),
+	pageCount: z.number(),
+	currentPage: z.number(),
+	totalItems: z.number(),
+})
+
 export type Book = z.infer<typeof bookSchema>
+export type BooksResponse = z.infer<typeof booksResponseSchema>

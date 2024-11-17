@@ -18,6 +18,8 @@ import {
 import { LoaderFunction, useLoaderData } from 'react-router'
 import { themeSessionResolver } from '~/services/theme.server'
 import { SidebarProvider } from '~/components/ui/sidebar'
+import { QueryClient } from '@tanstack/query-core'
+import { QueryClientProvider } from '@tanstack/react-query'
 
 export const links: LinksFunction = () => [
 	{ rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -43,6 +45,8 @@ type LoaderData = {
 	theme: Theme
 }
 
+const queryClient = new QueryClient()
+
 export default function AppWithProviders() {
 	const data = useLoaderData() as LoaderData
 	return (
@@ -67,7 +71,9 @@ function App() {
 			</head>
 			<body>
 				<SidebarProvider>
-					<Outlet />
+					<QueryClientProvider client={queryClient}>
+						<Outlet />
+					</QueryClientProvider>
 				</SidebarProvider>
 				<ScrollRestoration />
 				<Scripts />

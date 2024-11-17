@@ -1,9 +1,9 @@
-import { DataTable } from '~/components/tasks/data-table'
-import { columns } from '~/components/tasks/columns'
+import { columns } from '~/components/book-table/columns'
 import { ActionFunctionArgs, json } from '@remix-run/node'
 import { api } from '~/lib/utils/api'
 import { getSessionToken } from 'app/services/auth.server'
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData, useSearchParams } from '@remix-run/react'
+import { DataTable } from '~/components/book-table/data-table'
 
 export const metadata = {
 	title: 'Tasks',
@@ -20,31 +20,48 @@ export const loader = async ({ request }: ActionFunctionArgs) => {
 				Authorization: `Bearer ${token}`,
 			},
 		})
-		return response.data
+		console.log('API Response:', response.data)
+		return json({
+			data: response.data.data || [], // Assuming the books are in response.data.data
+			meta: response.data.meta || {}, // Metadata including pagination info
+			currentPage: parseInt(page),
+		})
 	} catch (error) {
-		return json({ error: 'Failed to fetch books' }, { status: 500 })
+		console.error('API Error:', error)
+		return json(
+			{
+				error: 'Failed to fetch books',
+				data: [],
+				meta: {},
+				currentPage: 1,
+			},
+			{
+				status: 500,
+			}
+		)
 	}
 }
 
 export default function TaskPage() {
-	const tasks = [
-		{
-			id: 'TASK-7878',
-			title:
-				'Try to calculate the EXE feed, maybe it will index the multi-byte pixel!',
-			status: 'backlog',
-			label: 'documentation',
-			priority: 'medium',
-		},
-		{
-			id: 'TASK-7839',
-			title: 'We need to bypass the neural TCP card!',
-			status: 'todo',
-			label: 'bug',
-			priority: 'high',
-		},
-	]
-	const data = useLoaderData<typeof loader>()
-	console.log(data)
-	return <DataTable data={tasks} columns={columns} />
+	const { data, meta, currentPage } = useLoaderData<typeof loader>()
+	const [searchParams, setSearchParams] = useSearchParams()
+	const pageCount = meta?.last_page || 1
+	const handlePageChange = (page: number) => {
+		setSearchParams(prev => {
+			prev.set('page', page.toString())
+			return prev
+		})
+	}
+	if (!data) {
+		return <div>No data available</div>
+	}
+	return (
+		<DataTable
+			data={data}
+			columns={columns}
+			pageCount={pageCount}
+			currentPage={currentPage}
+			onPageChange={handlePageChange}
+		/>
+	)
 }

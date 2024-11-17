@@ -1,9 +1,6 @@
-'use client'
-
 import { ColumnDef } from '@tanstack/react-table'
-import { Book } from '~/components/book-table/data'
-import { DataTableColumnHeader } from '~/components/book-table/data-table-column-header'
-import { DataTableRowActions } from '~/components/book-table/data-table-row-actions'
+import { DataTableColumnHeader } from './data-table-column-header'
+import { Book } from '~/types/book'
 
 export const columns: ColumnDef<Book>[] = [
 	{
@@ -20,15 +17,7 @@ export const columns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Name' />
 		),
-		cell: ({ row }) => {
-			return (
-				<div className='flex space-x-2'>
-					<span className='max-w-[500px] truncate font-medium'>
-						{row.getValue('name')}
-					</span>
-				</div>
-			)
-		},
+		cell: ({ row }) => <div>{row.getValue('name')}</div>,
 	},
 	{
 		accessorKey: 'author',
@@ -58,8 +47,8 @@ export const columns: ColumnDef<Book>[] = [
 		),
 		cell: ({ row }) => <div>{row.getValue('count')}</div>,
 	},
-	{
-		id: 'actions',
-		cell: ({ row }) => <DataTableRowActions row={row} />,
-	},
+	/*{
+    id: 'actions',
+    cell: ({ row }) => <DataTableRowActions row={row} />,
+  },*/
 ]

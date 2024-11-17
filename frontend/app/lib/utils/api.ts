@@ -1,7 +1,16 @@
 import axios from 'axios'
+import { booksResponseSchema } from '~/components/book-table/schema'
 
-// Create axios instance with interceptors
 export const api = axios.create({
 	baseURL: process.env.API_URL,
-	withCredentials: true,
 })
+
+export const fetchBooks = async (token: string, page: number = 1) => {
+	const response = await api.get(`/books?page=${page}`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	})
+
+	return booksResponseSchema.parse(response.data)
+}

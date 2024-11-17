@@ -1,5 +1,3 @@
-'use client'
-
 import * as React from 'react'
 import {
 	ColumnDef,
@@ -9,13 +7,11 @@ import {
 	getFacetedRowModel,
 	getFacetedUniqueValues,
 	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
 	SortingState,
 	useReactTable,
 	VisibilityState,
 } from '@tanstack/react-table'
-
 import {
 	Table,
 	TableBody,
@@ -24,22 +20,22 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { DataTablePagination } from '~/components/book-table/data-table-pagination'
-import { DataTableToolbar } from '~/components/book-table/data-table-toolbar'
+import { DataTablePagination } from './data-table-pagination'
+import { DataTableToolbar } from './data-table-toolbar'
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
 	data: TData[]
-	pageCount: number
-	currentPage: number
-	onPageChange: (page: number) => void
+	pageCount?: number
+	currentPage?: number
+	onPageChange?: (page: number) => void
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
-	pageCount,
-	currentPage,
+	pageCount = 1,
+	currentPage = 1,
 	onPageChange,
 }: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = React.useState({})
@@ -48,7 +44,6 @@ export function DataTable<TData, TValue>({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[]
 	)
-
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
 	const table = useReactTable({
@@ -64,6 +59,8 @@ export function DataTable<TData, TValue>({
 				pageSize: 10,
 			},
 		},
+		manualPagination: true,
+		pageCount: pageCount,
 		enableRowSelection: true,
 		onRowSelectionChange: setRowSelection,
 		onSortingChange: setSorting,
@@ -71,11 +68,9 @@ export function DataTable<TData, TValue>({
 		onColumnVisibilityChange: setColumnVisibility,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
-		pageCount: pageCount,
 	})
 
 	return (
@@ -131,12 +126,14 @@ export function DataTable<TData, TValue>({
 					</TableBody>
 				</Table>
 			</div>
-			<DataTablePagination
-				table={table}
-				currentPage={currentPage}
-				pageCount={pageCount}
-				onPageChange={onPageChange}
-			/>
+			{onPageChange && pageCount > 1 && (
+				<DataTablePagination
+					table={table}
+					currentPage={currentPage}
+					pageCount={pageCount}
+					onPageChange={onPageChange}
+				/>
+			)}
 		</div>
 	)
 }
