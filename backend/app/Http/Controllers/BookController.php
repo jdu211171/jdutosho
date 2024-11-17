@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Http\Resources\BookCodeListResource;
+use App\Http\Resources\BookCodesAdvancedResource;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use App\Models\BookCode;
@@ -12,6 +13,31 @@ use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
+    public function codes(Request $request)
+    {
+        $search = $request->input('search');
+        $searchStatus = $request->input('status');
+
+        $bookCodes = BookCode::query()
+            ->when(in_array($searchStatus, ['exist', 'lost', 'pending', 'rent']), function ($query) use ($searchStatus) {
+                $query->where('status', $searchStatus);
+            })
+            ->with('book')
+            ->when($search !== null, function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('code', 'like', "%{$search}%")
+                        ->orWhereHas('book', function ($query) use ($search) {
+                            $query->where('name', 'like', "%{$search}%")
+                                ->orWhere('author', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->paginate(10);
+
+
+        return BookCodesAdvancedResource::collection($bookCodes);
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');
