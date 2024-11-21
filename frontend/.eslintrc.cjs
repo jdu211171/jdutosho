@@ -6,84 +6,89 @@
 
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
-  root: true,
-  parserOptions: {
-    ecmaVersion: "latest",
-    sourceType: "module",
-    ecmaFeatures: {
-      jsx: true,
-    },
-  },
-  env: {
-    browser: true,
-    commonjs: true,
-    es6: true,
-  },
-  ignorePatterns: ["!**/.server", "!**/.client"],
+	root: true,
+	parserOptions: {
+		ecmaVersion: 'latest',
+		sourceType: 'module',
+		ecmaFeatures: {
+			jsx: true,
+		},
+	},
+	env: {
+		browser: true,
+		commonjs: true,
+		es6: true,
+	},
+	ignorePatterns: ['!**/.server', '!**/.client'],
 
-  // Base config
-  extends: ["eslint:recommended"],
+	// Base config
+	extends: ['eslint:recommended'],
 
-  overrides: [
-    // React
-    {
-      files: ["**/*.{js,jsx,ts,tsx}"],
-      plugins: ["react", "jsx-a11y", "prettier"],
-      extends: [
-        "plugin:react/recommended",
-        "plugin:react/jsx-runtime",
-        "plugin:react-hooks/recommended",
-        "plugin:jsx-a11y/recommended",
-      ],
-      settings: {
-        react: {
-          version: "detect",
-        },
-        formComponents: ["Form"],
-        linkComponents: [
-          {name: "Link", linkAttribute: "to"},
-          {name: "NavLink", linkAttribute: "to"},
-        ],
-        "import/resolver": {
-          typescript: {},
-        },
-      },
-    },
+	overrides: [
+		// React
+		{
+			files: ['**/*.{js,jsx,ts,tsx}'],
+			plugins: ['react', 'jsx-a11y', 'prettier'],
+			extends: [
+				'plugin:react/recommended',
+				'plugin:react/jsx-runtime',
+				'plugin:react-hooks/recommended',
+				'plugin:jsx-a11y/recommended',
+			],
+			settings: {
+				react: {
+					version: 'detect',
+				},
+				formComponents: ['Form'],
+				linkComponents: [
+					{ name: 'Link', linkAttribute: 'to' },
+					{ name: 'NavLink', linkAttribute: 'to' },
+				],
+				'import/resolver': {
+					typescript: {},
+				},
+			},
+		},
 
-    // Typescript
-    {
-      files: ["**/*.{ts,tsx}"],
-      plugins: ["@typescript-eslint", "import", "@typescript-eslint", "prettier"],
-      parser: "@typescript-eslint/parser",
-      rules: {
-        "prettier/prettier": "error",
-      },
-      settings: {
-        "import/internal-regex": "^~/",
-        "import/resolver": {
-          node: {
-            extensions: [".ts", ".tsx"],
-          },
-          typescript: {
-            alwaysTryTypes: true,
-          },
-        },
-      },
-      extends: [
-        "plugin:@typescript-eslint/recommended",
-        "plugin:import/recommended",
-        "plugin:import/typescript",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:prettier/recommended",
-      ],
-    },
+		// Typescript
+		{
+			files: ['**/*.{ts,tsx}'],
+			plugins: [
+				'@typescript-eslint',
+				'import',
+				'@typescript-eslint',
+				'prettier',
+			],
+			parser: '@typescript-eslint/parser',
+			rules: {
+				'prettier/prettier': 'error',
+			},
+			settings: {
+				'import/internal-regex': '^~/',
+				'import/resolver': {
+					node: {
+						extensions: ['.ts', '.tsx'],
+					},
+					typescript: {
+						alwaysTryTypes: true,
+					},
+				},
+			},
+			extends: [
+				'plugin:@typescript-eslint/recommended',
+				'plugin:import/recommended',
+				'plugin:import/typescript',
+				'plugin:@typescript-eslint/recommended',
+				'plugin:prettier/recommended',
+			],
+		},
 
-    // Node
-    {
-      files: [".eslintrc.cjs"],
-      env: {
-        node: true,
-      },
-    },
-  ],
-};
+		// Node
+		{
+			files: ['.eslintrc.cjs'],
+			env: {
+				node: true,
+			},
+		},
+	],
+}
