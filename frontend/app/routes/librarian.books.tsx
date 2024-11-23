@@ -20,10 +20,9 @@ export const loader = async ({ request }: ActionFunctionArgs) => {
 				Authorization: `Bearer ${token}`,
 			},
 		})
-		console.log('API Response:', response.data)
 		return json({
-			data: response.data.data || [], // Assuming the books are in response.data.data
-			meta: response.data.meta || {}, // Metadata including pagination info
+			data: response.data.data || [],
+			meta: response.data.meta || {},
 			currentPage: parseInt(page),
 		})
 	} catch (error) {
