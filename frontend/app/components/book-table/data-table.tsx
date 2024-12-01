@@ -29,6 +29,8 @@ interface DataTableProps<TData, TValue> {
 	pageCount?: number
 	currentPage?: number
 	onPageChange?: (page: number) => void
+	onSearch?: (search: string) => void
+	initialSearch?: string
 }
 
 export function DataTable<TData, TValue>({
@@ -37,6 +39,8 @@ export function DataTable<TData, TValue>({
 	pageCount = 1,
 	currentPage = 1,
 	onPageChange,
+	onSearch,
+	initialSearch = '',
 }: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = React.useState({})
 	const [columnVisibility, setColumnVisibility] =
@@ -45,6 +49,7 @@ export function DataTable<TData, TValue>({
 		[]
 	)
 	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [search, setSearch] = React.useState(initialSearch)
 
 	const table = useReactTable({
 		data,
@@ -73,9 +78,18 @@ export function DataTable<TData, TValue>({
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	})
 
+	const handleSearchChange = (value: string) => {
+		setSearch(value)
+		onSearch?.(value)
+	}
+
 	return (
 		<div className='space-y-4'>
-			<DataTableToolbar table={table} />
+			<DataTableToolbar
+				table={table}
+				search={search}
+				onSearchChange={handleSearchChange}
+			/>
 			<div className='rounded-md border'>
 				<Table>
 					<TableHeader>

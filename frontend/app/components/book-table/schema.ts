@@ -2,18 +2,20 @@ import { z } from 'zod'
 
 export const bookSchema = z.object({
 	id: z.number(),
+	code: z.string(),
 	name: z.string(),
 	author: z.string(),
-	language: z.string(),
 	category: z.string(),
-	count: z.number(),
+	language: z.string(),
+	status: z.string(),
 })
 
 export const booksResponseSchema = z.object({
 	data: z.array(bookSchema),
-	pageCount: z.number(),
-	currentPage: z.number(),
-	totalItems: z.number(),
+	meta: z.object({
+		current_page: z.number(),
+		last_page: z.number(),
+	}),
 })
 
 export type Book = z.infer<typeof bookSchema>

@@ -1,6 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from './data-table-column-header'
 import { Book } from '~/types/book'
+import { DataTableRowActions } from '~/components/book-table/data-table-row-actions'
 
 export const columns: ColumnDef<Book>[] = [
 	{
@@ -8,7 +9,16 @@ export const columns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='ID' />
 		),
-		cell: ({ row }) => <div className='w-[80px]'>{row.getValue('id')}</div>,
+		cell: ({ row }) => <div>{row.getValue('id')}</div>,
+		enableSorting: false,
+		enableHiding: true,
+	},
+	{
+		accessorKey: 'code',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Book Code' />
+		),
+		cell: ({ row }) => <div className='w-[80px]'>{row.getValue('code')}</div>,
 		enableSorting: false,
 		enableHiding: false,
 	},
@@ -41,14 +51,14 @@ export const columns: ColumnDef<Book>[] = [
 		cell: ({ row }) => <div>{row.getValue('category')}</div>,
 	},
 	{
-		accessorKey: 'count',
+		accessorKey: 'status',
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='Count' />
+			<DataTableColumnHeader column={column} title='Status' />
 		),
-		cell: ({ row }) => <div>{row.getValue('count')}</div>,
+		cell: ({ row }) => <div>{row.getValue('status')}</div>,
 	},
-	/*{
-    id: 'actions',
-    cell: ({ row }) => <DataTableRowActions row={row} />,
-  },*/
+	{
+		id: 'actions',
+		cell: ({ row }) => <DataTableRowActions row={row} />,
+	},
 ]
