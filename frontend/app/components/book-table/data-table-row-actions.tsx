@@ -1,18 +1,17 @@
 'use client'
 
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
-
 import { Button } from '~/components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
-	DropdownMenuShortcut,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { LendBookDialog } from '~/components/lend-book-dialog'
 
-export function DataTableRowActions() {
+export function DataTableRowActions({ row }: { row: any }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -26,13 +25,19 @@ export function DataTableRowActions() {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align='end' className='w-[160px]'>
 				<DropdownMenuItem>Edit</DropdownMenuItem>
-				<DropdownMenuItem>Lend</DropdownMenuItem>
+				{row.original.status !== 'rent' && row.original.status !== 'lost' && (
+					<LendBookDialog book_id={row.original.code}>
+						<DropdownMenuItem onSelect={e => e.preventDefault()}>
+							Lend
+						</DropdownMenuItem>
+					</LendBookDialog>
+				)}
+				{(row.original.status === 'rent' || row.original.status === 'lost') && (
+					<DropdownMenuItem disabled>Lend</DropdownMenuItem>
+				)}
 				<DropdownMenuItem>Favorite</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem>
-					Delete
-					<DropdownMenuShortcut>⌘ ⌫</DropdownMenuShortcut>
-				</DropdownMenuItem>
+				<DropdownMenuItem>Delete</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	)

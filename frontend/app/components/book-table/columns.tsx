@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from './data-table-column-header'
 import { Book } from '~/types/book'
-import { DataTableRowActions } from '~/components/book-table/data-table-row-actions'
+import { DataTableRowActions } from './data-table-row-actions'
 
 export const columns: ColumnDef<Book>[] = [
 	{
