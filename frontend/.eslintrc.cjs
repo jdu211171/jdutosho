@@ -25,7 +25,7 @@ module.exports = {
 	extends: ['eslint:recommended'],
 
 	overrides: [
-		// React
+		// React and JSX
 		{
 			files: ['**/*.{js,jsx,ts,tsx}'],
 			plugins: ['react', 'jsx-a11y', 'prettier'],
@@ -34,7 +34,12 @@ module.exports = {
 				'plugin:react/jsx-runtime',
 				'plugin:react-hooks/recommended',
 				'plugin:jsx-a11y/recommended',
+				'plugin:prettier/recommended',
 			],
+			rules: {
+				'react/jsx-key': 'error',
+				'prettier/prettier': 'error',
+			},
 			settings: {
 				react: {
 					version: 'detect',
@@ -50,17 +55,24 @@ module.exports = {
 			},
 		},
 
-		// Typescript
+		// TypeScript
 		{
 			files: ['**/*.{ts,tsx}'],
-			plugins: [
-				'@typescript-eslint',
-				'import',
-				'@typescript-eslint',
-				'prettier',
-			],
+			plugins: ['@typescript-eslint', 'import', 'prettier'],
 			parser: '@typescript-eslint/parser',
 			rules: {
+				'@typescript-eslint/no-unused-vars': ['error'],
+				'@typescript-eslint/explicit-function-return-type': [
+					'warn',
+					{
+						allowExpressions: true,
+						allowTypedFunctionExpressions: true,
+					},
+				],
+				'@typescript-eslint/no-explicit-any': 'warn',
+				'@typescript-eslint/consistent-type-imports': 'error',
+				'@typescript-eslint/no-floating-promises': 'error',
+				'@typescript-eslint/no-misused-promises': 'error',
 				'prettier/prettier': 'error',
 			},
 			settings: {
@@ -78,12 +90,11 @@ module.exports = {
 				'plugin:@typescript-eslint/recommended',
 				'plugin:import/recommended',
 				'plugin:import/typescript',
-				'plugin:@typescript-eslint/recommended',
 				'plugin:prettier/recommended',
 			],
 		},
 
-		// Node
+		// Node-specific settings
 		{
 			files: ['.eslintrc.cjs'],
 			env: {
