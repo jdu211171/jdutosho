@@ -22,12 +22,24 @@ export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	const loginID = formData.get('loginID')
 	const password = formData.get('password')
+	if (!loginID || !password) {
+		return json(
+			{ error: 'Please enter your login ID and password' },
+			{ status: 400 }
+		)
+	}
 
 	try {
 		const response = await axios.post<SessionData>(
 			`${process.env.API_URL}/login`,
 			{ loginID, password }
 		)
+
+		if (!response.data) {
+			throw new Error('Invalid credentials')
+		}
+
+		console.log(response.data)
 
 		const { token, user } = response.data
 		return createUserSession(token, user)
@@ -51,6 +63,10 @@ export default function LoginPage() {
 		formState: { errors },
 	} = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
+		defaultValues: {
+			loginID: '',
+			password: '',
+		},
 	})
 	return (
 		<div className='flex h-screen w-full items-center justify-center px-4'>
@@ -72,6 +88,7 @@ export default function LoginPage() {
 							<Label htmlFor='loginID'>Login ID</Label>
 							<Input
 								{...register('loginID')}
+								required
 								id='loginID'
 								placeholder='Enter your login ID'
 							/>
@@ -86,7 +103,12 @@ export default function LoginPage() {
 									Forgot your password?
 								</Link>
 							</div>
-							<Input {...register('password')} id='password' type='password' />
+							<Input
+								{...register('password')}
+								required
+								id='password'
+								type='password'
+							/>
 							{errors.password && (
 								<p className='text-sm text-red-500'>
 									{errors.password.message}

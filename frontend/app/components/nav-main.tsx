@@ -1,5 +1,5 @@
+import * as React from 'react'
 import { ChevronRight, type LucideIcon } from 'lucide-react'
-
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -16,20 +16,22 @@ import {
 	SidebarMenuSubItem,
 } from '~/components/ui/sidebar'
 
-export function NavMain({
-	items,
-}: {
+interface NavItem {
+	title: string
+	url: string
+	icon: LucideIcon
+	isActive?: boolean
 	items: {
 		title: string
 		url: string
-		icon?: LucideIcon
-		isActive?: boolean
-		items?: {
-			title: string
-			url: string
-		}[]
 	}[]
-}) {
+}
+
+interface NavMainProps {
+	items: NavItem[]
+}
+
+export function NavMain({ items }: NavMainProps) {
 	return (
 		<SidebarGroup>
 			<SidebarGroupLabel>Actions</SidebarGroupLabel>
@@ -44,9 +46,9 @@ export function NavMain({
 						<SidebarMenuItem>
 							<CollapsibleTrigger asChild>
 								<SidebarMenuButton tooltip={item.title}>
-									{item.icon && <item.icon />}
-									<span>{item.title}</span>
-									<ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+									{item.icon && <item.icon className='size-4' />}
+									<span className='truncate'>{item.title}</span>
+									<ChevronRight className='ml-auto size-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
 								</SidebarMenuButton>
 							</CollapsibleTrigger>
 							<CollapsibleContent>

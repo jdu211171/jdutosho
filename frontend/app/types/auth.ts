@@ -2,7 +2,9 @@ export interface User {
 	id: number
 	loginID: string
 	name: string
-	role: 'librarian' | 'student'
+	role: 'student' | 'librarian'
+	email: string
+	avatar?: string
 }
 
 export interface SessionData {

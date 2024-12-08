@@ -1,15 +1,14 @@
 import * as React from 'react'
 import {
-	AudioWaveform,
 	Book,
-	Command,
-	GalleryVerticalEnd,
+	Library,
 	UsersRound,
+	BookCopy,
+	GraduationCap,
 } from 'lucide-react'
-
-import { NavMain } from '~/components/nav-main'
+import { NavLink } from '@remix-run/react'
 import { NavUser } from '~/components/nav-user'
-import { TeamSwitcher } from '~/components/team-switcher'
+import { NavMain } from '~/components/nav-main'
 import {
 	Sidebar,
 	SidebarContent,
@@ -17,32 +16,18 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from '~/components/ui/sidebar'
+import { User } from '~/types/auth'
+import { TeamSwitcher } from './team-switcher'
 
-// This is sample data.
-const data = {
-	user: {
-		name: 'Yulduzxon Sobirova',
-		email: 'm@example.com',
-		avatar: '/logo-dark.png',
-	},
+const navConfig = {
 	teams: [
 		{
 			name: 'JDU Library',
-			logo: GalleryVerticalEnd,
+			logo: Library,
 			plan: 'Librarian',
 		},
-		{
-			name: 'Acme Corp.',
-			logo: AudioWaveform,
-			plan: 'Startup',
-		},
-		{
-			name: 'Evil Corp.',
-			logo: Command,
-			plan: 'Free',
-		},
 	],
-	navMain: [
+	librarian: [
 		{
 			title: 'Book Actions',
 			url: '#',
@@ -54,12 +39,12 @@ const data = {
 					url: '/librarian/books',
 				},
 				{
-					title: 'Rented',
-					url: '#',
+					title: 'Borrowed',
+					url: '/librarian/borrowed',
 				},
 				{
 					title: 'Pending',
-					url: '#',
+					url: '/librarian/pending',
 				},
 			],
 		},
@@ -69,51 +54,55 @@ const data = {
 			icon: UsersRound,
 			items: [
 				{
-					title: 'Create',
-					url: '#',
+					title: 'All Students',
+					url: '/librarian/students',
+					plan: 'Free',
 				},
 			],
 		},
 	],
-	/*projects: [
+	student: [
 		{
-			name: 'Design Engineering',
+			title: 'Books',
 			url: '#',
-			icon: Frame,
+			icon: BookCopy,
+			isActive: true,
+			items: [
+				{
+					title: 'Available Books',
+					url: '/student/books',
+				},
+				{
+					title: 'My Borrowed Books',
+					url: '/student/borrowed',
+				},
+			],
 		},
-		{
-			name: 'Sales & Marketing',
-			url: '#',
-			icon: PieChart,
-		},
-		{
-			name: 'Travel',
-			url: '#',
-			icon: Map,
-		},
-	],*/
+	],
 }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-	userRole: 'student' | 'librarian'
+	user: User
 }
 
-export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
+	const navItems = navConfig[user.role] || []
+
 	return (
-		<>
-			<Sidebar collapsible='icon' {...props}>
-				<SidebarHeader>
-					{userRole === 'librarian' && <TeamSwitcher teams={data.teams} />}
-				</SidebarHeader>
-				<SidebarContent>
-					<NavMain items={data.navMain} />
-					{/*<NavProjects projects={data.projects} />*/}
-				</SidebarContent>
-				<SidebarFooter>
-					<NavUser user={data.user} />
-				</SidebarFooter>
-				<SidebarRail />
-			</Sidebar>
-		</>
+		<Sidebar className='z-20' collapsible='icon' {...props}>
+			<SidebarHeader>
+				<TeamSwitcher teams={navConfig.teams} userRole={user.role} />
+			</SidebarHeader>
+
+			<SidebarContent>
+				<NavMain items={navItems} />
+			</SidebarContent>
+
+			<SidebarFooter>
+				<NavUser user={user} />
+			</SidebarFooter>
+
+			<SidebarRail />
+		</Sidebar>
 	)
 }

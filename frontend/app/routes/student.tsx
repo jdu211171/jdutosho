@@ -1,25 +1,34 @@
-import { json, Outlet } from '@remix-run/react'
+import { json, LoaderFunctionArgs } from '@remix-run/node'
+import { Outlet, useLoaderData } from '@remix-run/react'
 import { AppSidebar } from '~/components/app-sidebar'
-import { SidebarTrigger } from '~/components/ui/sidebar'
-import { LoaderFunction } from 'react-router'
-import { requireLibrarianUser } from '~/services/auth.server'
+import { DynamicBreadcrumb } from '~/components/breadcrumb'
+import { Separator } from '~/components/ui/separator'
+import { SidebarInset, SidebarTrigger } from '~/components/ui/sidebar'
+import { requireStudentUser } from '~/services/auth.server'
 
-export const loader: LoaderFunction = async ({ request }) => {
-	const { user } = await requireLibrarianUser(request)
+export async function loader({ request }: LoaderFunctionArgs) {
+	const { user } = await requireStudentUser(request)
 	return json({ user })
 }
 
 export default function StudentLayout() {
-	return (
-		<div className='flex'>
-			{/* Sidebar */}
-			<AppSidebar userRole='student' />
+	const { user } = useLoaderData<typeof loader>()
 
-			{/* Main content area */}
-			<main className='flex-1'>
-				<SidebarTrigger />
-				<Outlet />
-			</main>
+	return (
+		<div className='flex min-h-screen w-full'>
+			<AppSidebar user={user} />
+			<SidebarInset className='flex-1 grow'>
+				<header className='sticky top-0 z-10 flex h-16 w-full shrink-0 items-center border-b bg-background px-4'>
+					<div className='flex items-center gap-2'>
+						<SidebarTrigger className='-ml-2' />
+						<Separator orientation='vertical' className='h-4' />
+						<DynamicBreadcrumb />
+					</div>
+				</header>
+				<main className='flex-1 p-4'>
+					<Outlet />
+				</main>
+			</SidebarInset>
 		</div>
 	)
 }

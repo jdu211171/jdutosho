@@ -1,51 +1,34 @@
-import { json, Outlet } from '@remix-run/react'
+import { json, LoaderFunctionArgs } from '@remix-run/node'
+import { Outlet, useLoaderData } from '@remix-run/react'
 import { AppSidebar } from '~/components/app-sidebar'
 import { SidebarInset, SidebarTrigger } from '~/components/ui/sidebar'
 import { Separator } from '~/components/ui/separator'
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbPage,
-	BreadcrumbSeparator,
-} from '~/components/ui/breadcrumb'
-import { LoaderFunction } from 'react-router'
+import { DynamicBreadcrumb } from '~/components/breadcrumb'
 import { requireLibrarianUser } from '~/services/auth.server'
 
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderFunctionArgs) {
 	const { user } = await requireLibrarianUser(request)
 	return json({ user })
 }
 
 export default function LibrarianLayout() {
+	const { user } = useLoaderData<typeof loader>()
+
 	return (
-		<>
-			<AppSidebar userRole='librarian' />
-			<SidebarInset>
-				<header className='flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12'>
-					<div className='flex items-center gap-2 px-4'>
-						<SidebarTrigger className='-ml-1' />
-						<Separator orientation='vertical' className='mr-2 h-4' />
-						<Breadcrumb>
-							<BreadcrumbList>
-								<BreadcrumbItem className='hidden md:block'>
-									<BreadcrumbLink href='#'>
-										Building Your Application
-									</BreadcrumbLink>
-								</BreadcrumbItem>
-								<BreadcrumbSeparator className='hidden md:block' />
-								<BreadcrumbItem>
-									<BreadcrumbPage>Data Fetching</BreadcrumbPage>
-								</BreadcrumbItem>
-							</BreadcrumbList>
-						</Breadcrumb>
+		<div className='flex min-h-screen w-full'>
+			<AppSidebar user={user} />
+			<SidebarInset className='flex-1 grow'>
+				<header className='sticky top-0 z-10 flex h-16 w-full shrink-0 items-center border-b bg-background px-4'>
+					<div className='flex items-center gap-2'>
+						<SidebarTrigger className='-ml-2' />
+						<Separator orientation='vertical' className='h-4' />
+						<DynamicBreadcrumb />
 					</div>
 				</header>
-				<div className='flex flex-1 flex-col gap-4 p-4 pt-0'>
+				<main className='flex-1 p-4'>
 					<Outlet />
-				</div>
+				</main>
 			</SidebarInset>
-		</>
+		</div>
 	)
 }
