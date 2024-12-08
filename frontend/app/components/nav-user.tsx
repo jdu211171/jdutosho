@@ -1,4 +1,5 @@
 import { ChevronsUpDown, LogOut } from 'lucide-react'
+import { Form } from '@remix-run/react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import {
@@ -65,9 +66,13 @@ export function NavUser({
 							</div>
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>
-							<LogOut />
-							Log out
+						<DropdownMenuItem asChild>
+							<Form method='post' action='/logout'>
+								<button className='flex w-full items-center gap-2'>
+									<LogOut className='size-4' />
+									Log out
+								</button>
+							</Form>
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
