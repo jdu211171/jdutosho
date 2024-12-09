@@ -20,5 +20,11 @@ class DatabaseSeeder extends Seeder
             'password' => 'admin',
             'role' => 'librarian',
         ]);
+        User::create([
+            'loginID' => 'student',
+            'name' => 'Student',
+            'password' => 'student',
+            'role' => 'student',
+        ]);
     }
 }

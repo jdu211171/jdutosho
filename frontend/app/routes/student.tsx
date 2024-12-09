@@ -1,4 +1,4 @@
-import { json, LoaderFunctionArgs } from '@remix-run/node'
+import { LoaderFunctionArgs } from '@remix-run/node'
 import { Outlet, useLoaderData } from '@remix-run/react'
 import { AppSidebar } from '~/components/app-sidebar'
 import { DynamicBreadcrumb } from '~/components/breadcrumb'
@@ -8,7 +8,7 @@ import { requireStudentUser } from '~/services/auth.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const { user } = await requireStudentUser(request)
-	return json({ user })
+	return { user }
 }
 
 export default function StudentLayout() {

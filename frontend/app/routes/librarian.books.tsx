@@ -1,5 +1,5 @@
 import { columns } from '~/components/book-table/columns'
-import { ActionFunctionArgs, json } from '@remix-run/node'
+import { ActionFunctionArgs, data } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { getSessionToken } from 'app/services/auth.server'
 import { useLoaderData, useSearchParams } from '@remix-run/react'
@@ -26,7 +26,7 @@ export const loader = async ({ request }: ActionFunctionArgs) => {
 				Authorization: `Bearer ${token}`,
 			},
 		})
-		return json({
+		return data({
 			data: response.data.data || [],
 			meta: response.data.meta || {},
 			currentPage: parseInt(page),
@@ -34,7 +34,7 @@ export const loader = async ({ request }: ActionFunctionArgs) => {
 		})
 	} catch (error) {
 		console.error('API Error:', error)
-		return json(
+		return data(
 			{
 				error: 'Failed to fetch books',
 				data: [],

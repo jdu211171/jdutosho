@@ -8,8 +8,8 @@ import {
 } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
-import { Form, json, Link, useNavigation } from '@remix-run/react'
-import { ActionFunctionArgs } from '@remix-run/node'
+import { Form, Link, useNavigation } from '@remix-run/react'
+import { ActionFunctionArgs, data } from '@remix-run/node'
 import axios, { isAxiosError } from 'axios'
 import { useActionData } from 'react-router'
 import { LoginFormData, loginSchema } from '~/lib/validation'
@@ -23,7 +23,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	const loginID = formData.get('loginID')
 	const password = formData.get('password')
 	if (!loginID || !password) {
-		return json(
+		return data(
 			{ error: 'Please enter your login ID and password' },
 			{ status: 400 }
 		)
@@ -45,12 +45,12 @@ export async function action({ request }: ActionFunctionArgs) {
 		return createUserSession(token, user)
 	} catch (error) {
 		if (isAxiosError(error)) {
-			return json(
+			return data(
 				{ error: error.response?.data?.message || 'Invalid credentials' },
 				{ status: 400 }
 			)
 		}
-		return json({ error: 'Login failed' }, { status: 500 })
+		return data({ error: 'Login failed' }, { status: 500 })
 	}
 }
 
