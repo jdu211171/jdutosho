@@ -26,7 +26,7 @@ export function DataTableRowActions({ row }: { row: any }) {
 			<DropdownMenuContent align='end' className='w-[160px]'>
 				<DropdownMenuItem>Edit</DropdownMenuItem>
 				{row.original.status !== 'rent' && row.original.status !== 'lost' && (
-					<LendBookDialog book_id={row.original.code}>
+					<LendBookDialog initialBookId={row.original.code}>
 						<DropdownMenuItem onSelect={e => e.preventDefault()}>
 							Lend
 						</DropdownMenuItem>
