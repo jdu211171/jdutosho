@@ -28,17 +28,19 @@ class RentController extends Controller
     {
         $validated = $request->validated();
 
-        $student = User::find($validated['taken_by']);
+        $student = User::where('loginID', $validated['login_id'])->firstOrFail();
         if ($student->role !== 'student') {
             return response()->json(['message' => 'Only student can rent a book'], 400);
         }
 
-        $studentRents = RentBook::where(['taken_by' => $student->id])->whereNull('return_date')->count();
+        $studentRents = RentBook::where(['taken_by' => $student->id])
+            ->whereNull('return_date')
+            ->count();
         if ($studentRents >= 3) {
             return response()->json(['message' => 'Student can only rent 3 books'], 400);
         }
 
-        $bookCode = BookCode::find($validated['book_code_id']);
+        $bookCode = BookCode::where('code', $validated['book_code'])->firstOrFail();
         if ($bookCode->status !== 'exist') {
             return response()->json(['message' => 'Book is already rented'], 400);
         }

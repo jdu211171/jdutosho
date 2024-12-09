@@ -13,8 +13,8 @@ class StoreRentRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'book_code_id' => ['required', 'exists:book_codes,id'],
-            'taken_by' => ['required', 'exists:users,id'],
+            'book_code' => ['required', 'exists:book_codes,code'],
+            'login_id' => ['required', 'exists:users,loginID'],
         ];
     }
 }
