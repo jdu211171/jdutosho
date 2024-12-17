@@ -1,5 +1,6 @@
 import axios from 'axios'
 
 export const api = axios.create({
-	baseURL: process.env.API_URL,
+	baseURL:
+		typeof window !== 'undefined' ? window.ENV.API_URL : process.env.API_URL,
 })

@@ -9,13 +9,15 @@ import {
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Form, Link, useNavigation } from '@remix-run/react'
-import { ActionFunctionArgs, data } from '@remix-run/node'
+import type { ActionFunctionArgs } from '@remix-run/node'
+import { data } from '@remix-run/node'
 import axios, { isAxiosError } from 'axios'
 import { useActionData } from 'react-router'
-import { LoginFormData, loginSchema } from '~/lib/validation'
+import type { LoginFormData } from '~/lib/validation'
+import { loginSchema } from '~/lib/validation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { SessionData } from '~/types/auth'
+import type { SessionData } from '~/types/auth'
 import { createUserSession } from '~/services/auth.server'
 
 export async function action({ request }: ActionFunctionArgs) {

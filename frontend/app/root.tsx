@@ -1,20 +1,16 @@
 import {
 	Links,
+	LiveReload,
 	Meta,
 	Outlet,
 	Scripts,
 	ScrollRestoration,
+	useLoaderData,
 } from '@remix-run/react'
-import type { LinksFunction } from '@remix-run/node'
+import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/node'
 
 import './tailwind.css'
-import {
-	PreventFlashOnWrongTheme,
-	Theme,
-	ThemeProvider,
-	useTheme,
-} from 'remix-themes'
-import { LoaderFunction, useLoaderData } from 'react-router'
+import { PreventFlashOnWrongTheme, ThemeProvider, useTheme } from 'remix-themes'
 import { themeSessionResolver } from '~/services/theme.server'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { QueryClient } from '@tanstack/query-core'
@@ -33,30 +29,29 @@ export const links: LinksFunction = () => [
 	},
 ]
 
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderFunctionArgs) {
 	const { getTheme } = await themeSessionResolver(request)
 	return {
 		theme: getTheme(),
+		ENV: {
+			API_URL: process.env.API_URL,
+		},
 	}
-}
-
-type LoaderData = {
-	theme: Theme
 }
 
 const queryClient = new QueryClient()
 
 export default function AppWithProviders() {
-	const data = useLoaderData() as LoaderData
+	const theme = useLoaderData<typeof loader>()
 	return (
-		<ThemeProvider specifiedTheme={data.theme} themeAction='action/set-theme'>
+		<ThemeProvider specifiedTheme={theme.theme} themeAction='action/set-theme'>
 			<App />
 		</ThemeProvider>
 	)
 }
 
 function App() {
-	const data = useLoaderData() as LoaderData
+	const data = useLoaderData<typeof loader>()
 	const [theme] = useTheme()
 	return (
 		<html lang='en' className={theme ?? ''}>
@@ -69,13 +64,14 @@ function App() {
 				<title />
 			</head>
 			<body>
-				<QueryClientProvider client={queryClient}>
-					<SidebarProvider>
+				<SidebarProvider>
+					<QueryClientProvider client={queryClient}>
 						<Outlet />
-					</SidebarProvider>
-				</QueryClientProvider>
+					</QueryClientProvider>
+				</SidebarProvider>
 				<ScrollRestoration />
 				<Scripts />
+				{process.env.NODE_ENV === 'development' && <LiveReload />}
 			</body>
 		</html>
 	)

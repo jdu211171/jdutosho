@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import {
 	Book,
 	Library,
@@ -15,7 +15,7 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from '~/components/ui/sidebar'
-import { User } from '~/types/auth'
+import type { User } from '~/types/auth'
 import { TeamSwitcher } from './team-switcher'
 
 const navConfig = {

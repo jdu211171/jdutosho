@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 import { Outlet, useLoaderData } from '@remix-run/react'
 import { AppSidebar } from '~/components/app-sidebar'
 import { DynamicBreadcrumb } from '~/components/breadcrumb'

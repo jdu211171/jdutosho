@@ -5,7 +5,8 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
-import React, { useState } from 'react'
+import type React from 'react'
+import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import {
 	Dialog,
@@ -39,7 +40,20 @@ import {
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
-// Zod schema for form validation
+interface Book {
+	id: string
+	code: string
+}
+
+interface Student {
+	id: string
+	loginID: string
+}
+
+interface ApiResponse<T> {
+	data: T[]
+}
+
 const lendingSchema = z.object({
 	bookId: z.string().min(1, 'Book ID is required'),
 	studentId: z.string().min(1, 'Student ID is required'),
@@ -55,7 +69,7 @@ interface LendBookDialogProps {
 export function LendBookDialog({
 	children,
 	initialBookId,
-}: LendBookDialogProps) {
+}: LendBookDialogProps): JSX.Element {
 	const [open, setOpen] = useState(false)
 	const [bookSearch, setBookSearch] = useState('')
 	const [studentSearch, setStudentSearch] = useState('')
@@ -65,28 +79,36 @@ export function LendBookDialog({
 	const form = useForm<LendingFormData>({
 		resolver: zodResolver(lendingSchema),
 		defaultValues: {
-			bookId: initialBookId || '',
+			bookId: initialBookId ?? '',
 			studentId: '',
 		},
 	})
 
-	// Query for books search
-	const { data: booksData, isLoading: isLoadingBooks } = useQuery({
+	const { data: booksData, isLoading: isLoadingBooks } = useQuery<
+		ApiResponse<Book>,
+		Error
+	>({
 		queryKey: ['books', bookSearch],
 		queryFn: async () => {
 			if (!bookSearch) return { data: [] }
-			const response = await axios.get(`/books/list?search=${bookSearch}`)
+			const response = await axios.get<ApiResponse<Book>>(
+				`/books/list?search=${bookSearch}`
+			)
 			return response.data
 		},
 		enabled: bookSearch.length > 0,
 	})
 
-	// Query for students search
-	const { data: studentsData, isLoading: isLoadingStudents } = useQuery({
+	const { data: studentsData, isLoading: isLoadingStudents } = useQuery<
+		ApiResponse<Student>,
+		Error
+	>({
 		queryKey: ['students', studentSearch],
 		queryFn: async () => {
 			if (!studentSearch) return { data: [] }
-			const response = await axios.get(`/users/list?search=${studentSearch}`)
+			const response = await axios.get<ApiResponse<Student>>(
+				`/users/list?search=${studentSearch}`
+			)
 			return response.data
 		},
 		enabled: studentSearch.length > 0,
@@ -94,7 +116,6 @@ export function LendBookDialog({
 
 	const onSubmit = async (data: LendingFormData) => {
 		try {
-			// Implement your lending logic here
 			console.log('Form submitted:', data)
 			setOpen(false)
 		} catch (error) {
@@ -114,7 +135,10 @@ export function LendBookDialog({
 				</DialogHeader>
 
 				<Form {...form}>
-					<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+					<form
+						onSubmit={e => void form.handleSubmit(onSubmit)(e)}
+						className='space-y-4'
+					>
 						<FormField
 							control={form.control}
 							name='bookId'
@@ -146,9 +170,13 @@ export function LendBookDialog({
 													placeholder='Search book ID...'
 													onValueChange={setBookSearch}
 												/>
-												<CommandEmpty>No book found</CommandEmpty>
+												{isLoadingBooks ? (
+													<CommandEmpty>Loading books...</CommandEmpty>
+												) : (
+													<CommandEmpty>No book found</CommandEmpty>
+												)}
 												<CommandGroup>
-													{booksData?.data.map((book: any) => (
+													{booksData?.data.map(book => (
 														<CommandItem
 															key={book.id}
 															value={book.code}
@@ -208,9 +236,13 @@ export function LendBookDialog({
 													placeholder='Search student ID...'
 													onValueChange={setStudentSearch}
 												/>
-												<CommandEmpty>No student found</CommandEmpty>
+												{isLoadingStudents ? (
+													<CommandEmpty>Loading students...</CommandEmpty>
+												) : (
+													<CommandEmpty>No student found</CommandEmpty>
+												)}
 												<CommandGroup>
-													{studentsData?.data.map((student: any) => (
+													{studentsData?.data.map(student => (
 														<CommandItem
 															key={student.id}
 															value={student.loginID}

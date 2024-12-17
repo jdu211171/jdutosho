@@ -19,7 +19,7 @@ module.exports = {
 		commonjs: true,
 		es6: true,
 	},
-	ignorePatterns: ['!**/.server', '!**/.client'],
+	ignorePatterns: ['!**/.server', '!**/.client', 'app/components/ui/'],
 
 	// Base config
 	extends: ['eslint:recommended'],
@@ -38,7 +38,7 @@ module.exports = {
 			],
 			rules: {
 				'react/jsx-key': 'error',
-				'prettier/prettier': 'error',
+				'prettier/prettier': ['error', {}, { usePrettierrc: true }],
 			},
 			settings: {
 				react: {
@@ -60,20 +60,18 @@ module.exports = {
 			files: ['**/*.{ts,tsx}'],
 			plugins: ['@typescript-eslint', 'import', 'prettier'],
 			parser: '@typescript-eslint/parser',
+			parserOptions: {
+				project: ['./tsconfig.json'],
+				tsconfigRootDir: __dirname,
+			},
 			rules: {
 				'@typescript-eslint/no-unused-vars': ['error'],
-				'@typescript-eslint/explicit-function-return-type': [
-					'warn',
-					{
-						allowExpressions: true,
-						allowTypedFunctionExpressions: true,
-					},
-				],
-				'@typescript-eslint/no-explicit-any': 'warn',
+				'@typescript-eslint/no-explicit-any': 'off',
 				'@typescript-eslint/consistent-type-imports': 'error',
 				'@typescript-eslint/no-floating-promises': 'error',
 				'@typescript-eslint/no-misused-promises': 'error',
-				'prettier/prettier': 'error',
+				'prettier/prettier': ['error', {}, { usePrettierrc: true }],
+				'linebreak-style': ['error', 'unix'],
 			},
 			settings: {
 				'import/internal-regex': '^~/',

@@ -1,16 +1,18 @@
 import * as React from 'react'
-import {
+import type {
 	ColumnDef,
 	ColumnFiltersState,
+	SortingState,
+	VisibilityState,
+} from '@tanstack/react-table'
+import {
 	flexRender,
 	getCoreRowModel,
 	getFacetedRowModel,
 	getFacetedUniqueValues,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
 	useReactTable,
-	VisibilityState,
 } from '@tanstack/react-table'
 import {
 	Table,

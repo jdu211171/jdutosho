@@ -1,5 +1,6 @@
 import { columns } from '~/components/book-table/columns'
-import { ActionFunctionArgs, data } from '@remix-run/node'
+import type { ActionFunctionArgs } from '@remix-run/node'
+import { data } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { getSessionToken } from 'app/services/auth.server'
 import { useLoaderData, useSearchParams } from '@remix-run/react'
@@ -56,7 +57,7 @@ export default function TaskPage() {
 		currentPage,
 		search: initialSearch,
 	} = useLoaderData<typeof loader>()
-	const [searchParams, setSearchParams] = useSearchParams()
+	const [, setSearchParams] = useSearchParams()
 	const pageCount = meta?.last_page || 1
 
 	const handlePageChange = (page: number) => {

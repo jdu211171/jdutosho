@@ -1,4 +1,10 @@
-import { BookCopy, GraduationCap, Book, UsersRound, Library } from 'lucide-react'
+import {
+	BookCopy,
+	GraduationCap,
+	Book,
+	UsersRound,
+	Library,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface NavItem {
