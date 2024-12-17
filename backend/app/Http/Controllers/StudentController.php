@@ -22,6 +22,46 @@ class StudentController extends Controller
         return RentResource::collection($rents);
     }
 
+    public function dashboard()
+    {
+        $student = auth()->user();
+
+        // Currently borrowed books
+        $totalBorrowed = RentBook::where('taken_by', $student->id)
+            ->whereNull('return_date')
+            ->count();
+
+        // Available books - fixed query
+        $availableBooks = Book::count();
+
+        // Total books borrowed history
+        $rentHistory = RentBook::where('taken_by', $student->id)->count();
+
+        // Average rent days - improved calculation
+        $averageRentDays = RentBook::where('taken_by', $student->id)
+            ->whereNotNull('return_date')
+            ->selectRaw('
+                ROUND(
+                    AVG(
+                        DATEDIFF(
+                            return_date,
+                            given_date
+                        )
+                    )
+                ) as avg_days
+            ')
+            ->value('avg_days') ?? 0;
+
+        return response()->json([
+            'data' => [
+                'totalBorrowed' => $totalBorrowed,
+                'availableBooks' => $availableBooks,
+                'rentHistory' => $rentHistory,
+                'averageRentDays' => (int) $averageRentDays
+            ]
+        ]);
+    }
+
     public function returnBook($id)
     {
         $rent = RentBook::find($id)
