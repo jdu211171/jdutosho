@@ -109,8 +109,5 @@ module.exports = {
 				node: true,
 			},
 		},
-    rules: {
-        'import/no-unresolved': 'error',
-        '@typescript-eslint/no-unused-vars': 'warn',
-    },
-};
+	],
+}
