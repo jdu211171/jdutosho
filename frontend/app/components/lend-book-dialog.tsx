@@ -2,7 +2,8 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useFetcher } from '@remix-run/react'
-import { KeyboardEvent, useEffect, useMemo, useState } from 'react'
+import type { KeyboardEvent } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import _ from 'lodash'
 import { Button } from '~/components/ui/button'
 import {
@@ -24,10 +25,6 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { cn } from '~/lib/utils'
-import { useAuth } from '~/context/auth-provider'
-import axios from 'axios'
-import { api } from '~/lib/api'
-import { toast } from '~/hooks/use-toast'
 
 interface Book {
 	id: string
@@ -58,7 +55,7 @@ interface LendBookDialogProps {
 export function LendBookDialog({
 	children,
 	initialBookId,
-}: LendBookDialogProps): JSX.Element {
+}: LendBookDialogProps) {
 	const [open, setOpen] = useState(false)
 	const [bookSearch, setBookSearch] = useState('')
 	const [studentSearch, setStudentSearch] = useState('')
@@ -78,7 +75,7 @@ export function LendBookDialog({
 					bookSearchFetcher.load(`/librarian/books/search?q=${value}`)
 				}
 			}, 300),
-		[]
+		[bookSearchFetcher, debounce]
 	)
 
 	const debouncedSetStudentSearch = useMemo(
@@ -89,7 +86,7 @@ export function LendBookDialog({
 					studentSearchFetcher.load(`/librarian/students/search?q=${value}`)
 				}
 			}, 300),
-		[]
+		[debounce, studentSearchFetcher]
 	)
 
 	const form = useForm<LendingFormData>({
@@ -191,7 +188,14 @@ export function LendBookDialog({
 						form.getValues(type === 'book' ? 'bookId' : 'studentId') ===
 							value && 'font-medium'
 					)}
+					role='button'
+					tabIndex={0}
 					onClick={() => onSelect(value)}
+					onKeyDown={e => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							onSelect(value)
+						}
+					}}
 				>
 					{value}
 				</div>

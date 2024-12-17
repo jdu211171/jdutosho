@@ -1,4 +1,4 @@
-import { ActionFunctionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs } from '@remix-run/node'
 import { getSessionToken } from '~/services/auth.server'
 import { api } from '~/lib/api'
 import { z } from 'zod'

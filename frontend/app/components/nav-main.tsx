@@ -15,6 +15,7 @@ import {
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
 } from '~/components/ui/sidebar'
+import { useMemo } from 'react'
 
 interface NavItem {
 	title: string
@@ -31,21 +32,28 @@ interface NavMainProps {
 	items: NavItem[]
 }
 
-function calculateIsActive(item: NavItem) {
-	const location = useLocation()
-	return item.items.some(subItem => location.pathname.startsWith(subItem.url))
-}
-
 export function NavMain({ items }: NavMainProps) {
+	const location = useLocation()
+
+	// Calculate active states for all items at once using useMemo
+	const itemsWithActive = useMemo(() => {
+		return items.map(item => ({
+			...item,
+			isActive: item.items.some(subItem =>
+				location.pathname.startsWith(subItem.url)
+			),
+		}))
+	}, [items, location.pathname])
+
 	return (
 		<SidebarGroup>
 			<SidebarGroupLabel>Actions</SidebarGroupLabel>
 			<SidebarMenu>
-				{items.map(item => (
+				{itemsWithActive.map(item => (
 					<Collapsible
 						key={item.title}
 						asChild
-						defaultOpen={calculateIsActive(item)}
+						defaultOpen={item.isActive}
 						className='group/collapsible'
 					>
 						<SidebarMenuItem>

@@ -1,11 +1,4 @@
 import type * as React from 'react'
-import {
-	Book,
-	Library,
-	UsersRound,
-	BookCopy,
-	GraduationCap,
-} from 'lucide-react'
 import { NavUser } from '~/components/nav-user'
 import { NavMain } from '~/components/nav-main'
 import {

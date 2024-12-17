@@ -24,8 +24,7 @@ export async function createUserSession(token: string, user: User) {
 	session.set('token', token)
 	session.set('user', user)
 
-	const redirectTo =
-		user.role === 'librarian' ? '/librarian' : '/student'
+	const redirectTo = user.role === 'librarian' ? '/librarian' : '/student'
 
 	return redirect(redirectTo, {
 		headers: {

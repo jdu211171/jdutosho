@@ -30,8 +30,6 @@ module.exports = {
 			files: ['**/*.{js,jsx,ts,tsx}'],
 			plugins: ['react', 'jsx-a11y', 'prettier'],
 			extends: [
-				'@remix-run/eslint-config',
-				'@remix-run/eslint-config/node',
 				'plugin:react/recommended',
 				'plugin:react/jsx-runtime',
 				'plugin:react-hooks/recommended',

@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 import { getSessionToken } from '~/services/auth.server'
 import { api } from '~/lib/api'
 

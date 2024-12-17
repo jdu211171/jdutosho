@@ -1,9 +1,9 @@
-import { useLoaderData, useFetcher } from '@remix-run/react'
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/node'
+import { useFetcher, useLoaderData } from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { requireStudentUser } from '~/services/auth.server'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { CalendarDays, BookOpen, User } from 'lucide-react'
+import { BookOpen, CalendarDays, User } from 'lucide-react'
 import { toast } from '~/hooks/use-toast'
 import { useEffect } from 'react'
 
@@ -128,7 +128,7 @@ export default function StudentBorrowedBooks() {
 				<CardContent>
 					<BookOpen className='mx-auto h-12 w-12 text-muted-foreground opacity-50' />
 					<p className='mt-4 text-sm text-muted-foreground'>
-						You haven't borrowed any books yet.
+						You haven&#39;t borrowed any books yet.
 					</p>
 				</CardContent>
 			</Card>
