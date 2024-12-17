@@ -8,48 +8,48 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from '~/components/ui/breadcrumb'
+import { navConfig } from '~/lib/navConfig'
 
-const routeMap: Record<string, { title: string; path?: string }> = {
-	routes: {
-		title: 'Home',
-		path: '/',
-	},
-	'routes/librarian': {
-		title: 'Dashboard',
-		path: '/librarian',
-	},
-	'routes/librarian.books': {
-		title: 'Books',
-		path: '/librarian/books',
-	},
-	'routes/librarian.students': {
-		title: 'Students',
-		path: '/librarian/students',
-	},
-	'routes/librarian.borrowed': {
-		title: 'Borrowed Books',
-		path: '/librarian/borrowed',
-	},
-	'routes/librarian.pending': {
-		title: 'Pending Returns',
-		path: '/librarian/pending',
-	},
-	'routes/student': {
-		title: 'Dashboard',
-		path: '/student',
-	},
-	'routes/student.books': {
-		title: 'Books',
-		path: '/student/books',
-	},
-	'routes/student.borrowed': {
-		title: 'My Books',
-		path: '/student/borrowed',
-	},
-	'routes/student.profile': {
-		title: 'Profile',
-		path: '/student/profile',
-	},
+interface RouteMapItem {
+	title: string
+	path: string
+}
+
+const routeMap: Record<string, RouteMapItem> = {
+	'routes/librarian': { title: 'Librarian', path: '/librarian' },
+	'routes/student': { title: 'Student', path: '/student' },
+	...navConfig.librarian.reduce(
+		(acc, section) => ({
+			...acc,
+			...section.items.reduce(
+				(items, item) => ({
+					...items,
+					[`routes/${item.url.slice(1).replace(/\//g, '.')}`]: {
+						title: item.title,
+						path: item.url,
+					},
+				}),
+				{}
+			),
+		}),
+		{}
+	),
+	...navConfig.student.reduce(
+		(acc, section) => ({
+			...acc,
+			...section.items.reduce(
+				(items, item) => ({
+					...items,
+					[`routes/${item.url.slice(1).replace(/\//g, '.')}`]: {
+						title: item.title,
+						path: item.url,
+					},
+				}),
+				{}
+			),
+		}),
+		{}
+	),
 }
 
 export function DynamicBreadcrumb() {
@@ -58,11 +58,11 @@ export function DynamicBreadcrumb() {
 	const breadcrumbs = matches
 		.filter(match => match.id !== 'root')
 		.map(match => {
-			const routeId = match.id.replace(/\./g, '.').replace(/^routes\./, '')
+			const routeId = match.id.replace(/\$/g, '')
 			return {
 				id: match.id,
-				title: routeMap[match.id]?.title || routeId,
-				path: routeMap[match.id]?.path || match.pathname,
+				title: routeMap[routeId]?.title || routeId.split('/').pop() || '',
+				path: routeMap[routeId]?.path || match.pathname,
 			}
 		})
 
@@ -79,8 +79,8 @@ export function DynamicBreadcrumb() {
 								{isLast ? (
 									<BreadcrumbPage>{crumb.title}</BreadcrumbPage>
 								) : (
-									<BreadcrumbLink>
-										<Link to={crumb.path}>{crumb.title}</Link>
+									<BreadcrumbLink href={crumb.path}>
+										{crumb.title}
 									</BreadcrumbLink>
 								)}
 							</BreadcrumbItem>

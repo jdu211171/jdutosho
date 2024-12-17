@@ -1,6 +1,5 @@
 import {
 	Links,
-	LiveReload,
 	Meta,
 	Outlet,
 	Scripts,
@@ -70,14 +69,13 @@ function App() {
 				<title />
 			</head>
 			<body>
-				<SidebarProvider>
-					<QueryClientProvider client={queryClient}>
+				<QueryClientProvider client={queryClient}>
+					<SidebarProvider>
 						<Outlet />
-					</QueryClientProvider>
-				</SidebarProvider>
+					</SidebarProvider>
+				</QueryClientProvider>
 				<ScrollRestoration />
 				<Scripts />
-				{process.env.NODE_ENV === 'development' && <LiveReload />}
 			</body>
 		</html>
 	)

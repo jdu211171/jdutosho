@@ -6,7 +6,6 @@ import {
 	BookCopy,
 	GraduationCap,
 } from 'lucide-react'
-import { NavLink } from '@remix-run/react'
 import { NavUser } from '~/components/nav-user'
 import { NavMain } from '~/components/nav-main'
 import {
@@ -24,27 +23,46 @@ const navConfig = {
 		{
 			name: 'JDU Library',
 			logo: Library,
-			plan: 'Librarian',
+			plan: 'Librarian', // Plan visible in TeamSwitcher
 		},
 	],
 	librarian: [
 		{
-			title: 'Book Actions',
+			title: 'Books Management',
 			url: '#',
 			icon: Book,
 			isActive: true,
 			items: [
 				{
-					title: 'List',
-					url: '/librarian/books',
+					title: 'All Books',
+					url: '/librarian/books', // View all books
 				},
 				{
-					title: 'Borrowed',
-					url: '/librarian/borrowed',
+					title: 'Add New Book',
+					url: '/librarian/books/new', // Add a new book
 				},
 				{
-					title: 'Pending',
-					url: '/librarian/pending',
+					title: 'Pending Requests',
+					url: '/librarian/rents/pending', // View pending book rents
+				},
+				{
+					title: 'Borrowed Books',
+					url: '/librarian/rents/borrowed', // Track borrowed books
+				},
+			],
+		},
+		{
+			title: 'Categories',
+			url: '#',
+			icon: GraduationCap,
+			items: [
+				{
+					title: 'All Categories',
+					url: '/librarian/categories', // Manage book categories
+				},
+				{
+					title: 'Add New Category',
+					url: '/librarian/categories/new', // Add a new book category
 				},
 			],
 		},
@@ -55,8 +73,11 @@ const navConfig = {
 			items: [
 				{
 					title: 'All Students',
-					url: '/librarian/students',
-					plan: 'Free',
+					url: '/librarian/students', // List all students
+				},
+				{
+					title: 'Add New Student',
+					url: '/librarian/students/new', // Add a new student
 				},
 			],
 		},
@@ -70,11 +91,15 @@ const navConfig = {
 			items: [
 				{
 					title: 'Available Books',
-					url: '/student/books',
+					url: '/student/books', // View all available books
 				},
 				{
 					title: 'My Borrowed Books',
-					url: '/student/borrowed',
+					url: '/student/rents/borrowed', // View student's borrowed books
+				},
+				{
+					title: 'Rent History',
+					url: '/student/rents/history', // View rent history
 				},
 			],
 		},
