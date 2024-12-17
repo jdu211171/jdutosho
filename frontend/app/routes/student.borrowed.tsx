@@ -1,5 +1,5 @@
 import { useLoaderData } from '@remix-run/react'
-import { LoaderFunctionArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { requireStudentUser } from '~/services/auth.server'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
