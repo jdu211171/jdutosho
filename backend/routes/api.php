@@ -4,6 +4,7 @@ use App\Http\Controllers\BookCategoryController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\RentController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\LibrarianController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,13 +45,17 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/pending', 'pending');
             Route::put('/{id}/accept', 'accept');
         });
+        Route::prefix('/librarian')->controller(LibrarianController::class)->group(function() {
+            Route::get('/dashboard', 'dashboard');
+        });
     });
 
     Route::middleware('role:student')->group(function () {
         Route::prefix('/student')->controller(StudentController::class)->group(function () {
             Route::get('/rents', 'index');
             Route::get('/books', 'bookList');
-                Route::put('/{id}/return', 'returnBook');
+            Route::get('/dashboard', 'dashboard');
+            Route::put('/{id}/return', 'returnBook');
         });
     });
 });

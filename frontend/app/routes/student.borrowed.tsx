@@ -4,7 +4,6 @@ import { api } from '~/lib/api'
 import { requireStudentUser } from '~/services/auth.server'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { CalendarDays, BookOpen, User } from 'lucide-react'
-import { json } from '@remix-run/node'
 
 type BorrowedBook = {
 	id: number
@@ -41,13 +40,14 @@ export async function action({ request }: ActionFunctionArgs) {
 	console.log('user: ', user)
 	try {
 		console.log('inside try')
-		const response = await api.post(`/student/${bookId}/return`, {
+		const response = await api.put(`/student/${bookId}/return`, {
 			headers: {
-				'Content-Type': 'application/json',
 				Authorization: `Bearer ${user.token}`,
 			},
 		})
-		console.log('response: ', response, response.data)
+		if (response.status !== 200) {
+			return { success: false }
+		}
 		return { success: true }
 	} catch (error) {
 		console.log('error: ', error)
@@ -67,17 +67,17 @@ function BookCard({ book }: { book: BorrowedBook }) {
 			</CardHeader>
 			<CardContent className='space-y-3'>
 				<div className='flex items-center space-x-2'>
-					<User className='h-4 w-4 text-muted-foreground' />
+					<User className='h-4 w-4 shrink-0 text-muted-foreground' />
 					<span className='text-sm'>Given by: {book.given_by}</span>
 				</div>
 				<div className='flex items-center space-x-2'>
-					<CalendarDays className='h-4 w-4 text-muted-foreground' />
+					<CalendarDays className='h-4 w-4 shrink-0 text-muted-foreground' />
 					<span className='text-sm'>
 						Borrowed on: {book.given_date} ({book.passed_days} days ago)
 					</span>
 				</div>
 				<div className='flex items-center space-x-2'>
-					<BookOpen className='h-4 w-4 text-muted-foreground' />
+					<BookOpen className='h-4 w-4 shrink-0 text-muted-foreground' />
 					<span className='text-sm'>Status: {book.status}</span>
 				</div>
 				<fetcher.Form method='post'>

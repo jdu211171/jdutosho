@@ -59,12 +59,15 @@ export function DynamicBreadcrumb() {
 		.filter(match => match.id !== 'root')
 		.map(match => {
 			const routeId = match.id.replace(/\$/g, '')
+			if (routeId.includes('._index')) return null
 			return {
 				id: match.id,
 				title: routeMap[routeId]?.title || routeId.split('/').pop() || '',
 				path: routeMap[routeId]?.path || match.pathname,
 			}
 		})
+
+	if (breadcrumbs.includes(null)) breadcrumbs.pop()
 
 	if (breadcrumbs.length === 0) return null
 
@@ -74,13 +77,13 @@ export function DynamicBreadcrumb() {
 				{breadcrumbs.map((crumb, index) => {
 					const isLast = index === breadcrumbs.length - 1
 					return (
-						<React.Fragment key={crumb.path}>
+						<React.Fragment key={crumb?.path}>
 							<BreadcrumbItem>
 								{isLast ? (
-									<BreadcrumbPage>{crumb.title}</BreadcrumbPage>
+									<BreadcrumbPage>{crumb?.title}</BreadcrumbPage>
 								) : (
-									<BreadcrumbLink href={crumb.path}>
-										{crumb.title}
+									<BreadcrumbLink href={crumb?.path}>
+										{crumb?.title}
 									</BreadcrumbLink>
 								)}
 							</BreadcrumbItem>

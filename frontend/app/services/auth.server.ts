@@ -63,7 +63,7 @@ export async function requireLibrarianUser(request: Request) {
 	const userSession = await requireUser(request)
 
 	if (userSession.user.role !== 'librarian') {
-		throw redirect('/login')
+		throw redirect('/	login')
 	}
 
 	return userSession
