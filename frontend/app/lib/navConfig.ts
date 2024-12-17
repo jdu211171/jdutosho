@@ -74,7 +74,7 @@ export const navConfig: NavConfig = {
 	student: [
 		{
 			title: 'Books',
-			url: '/student/books',
+			url: '/student',
 			icon: BookCopy,
 			items: [
 				{ title: 'Available Books', url: '/student/books' },

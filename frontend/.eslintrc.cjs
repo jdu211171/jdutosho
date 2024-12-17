@@ -30,6 +30,8 @@ module.exports = {
 			files: ['**/*.{js,jsx,ts,tsx}'],
 			plugins: ['react', 'jsx-a11y', 'prettier'],
 			extends: [
+				'@remix-run/eslint-config',
+				'@remix-run/eslint-config/node',
 				'plugin:react/recommended',
 				'plugin:react/jsx-runtime',
 				'plugin:react-hooks/recommended',
@@ -50,7 +52,13 @@ module.exports = {
 					{ name: 'NavLink', linkAttribute: 'to' },
 				],
 				'import/resolver': {
-					typescript: {},
+					typescript: {
+						project: './tsconfig.json', // Explicit path to tsconfig.json
+						alwaysTryTypes: true, // Tries type declarations
+					},
+					node: {
+						extensions: ['.ts', '.tsx'],
+					},
 				},
 			},
 		},
@@ -63,6 +71,8 @@ module.exports = {
 			parserOptions: {
 				project: ['./tsconfig.json'],
 				tsconfigRootDir: __dirname,
+				ecmaVersion: 'latest',
+				sourceType: 'module',
 			},
 			rules: {
 				'@typescript-eslint/no-unused-vars': ['error'],
@@ -73,6 +83,12 @@ module.exports = {
 				'prettier/prettier': ['error', {}, { usePrettierrc: true }],
 				'linebreak-style': ['error', 'unix'],
 			},
+			extends: [
+				'plugin:@typescript-eslint/recommended',
+				'plugin:import/recommended',
+				'plugin:import/typescript',
+				'plugin:prettier/recommended',
+			],
 			settings: {
 				'import/internal-regex': '^~/',
 				'import/resolver': {
@@ -80,16 +96,11 @@ module.exports = {
 						extensions: ['.ts', '.tsx'],
 					},
 					typescript: {
+						project: './tsconfig.json',
 						alwaysTryTypes: true,
 					},
 				},
 			},
-			extends: [
-				'plugin:@typescript-eslint/recommended',
-				'plugin:import/recommended',
-				'plugin:import/typescript',
-				'plugin:prettier/recommended',
-			],
 		},
 
 		// Node-specific settings

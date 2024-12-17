@@ -62,3 +62,42 @@ export const columns: ColumnDef<Book>[] = [
 		cell: ({ row }) => <DataTableRowActions row={row} />,
 	},
 ]
+
+export const studentBookColumns: ColumnDef<Book>[] = [
+	{
+		accessorKey: 'id',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='ID' />
+		),
+	},
+	{
+		accessorKey: 'name',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Name' />
+		),
+	},
+	{
+		accessorKey: 'author',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Author' />
+		),
+	},
+	{
+		accessorKey: 'language',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Language' />
+		),
+	},
+	{
+		accessorKey: 'category',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Category' />
+		),
+	},
+	{
+		accessorKey: 'available',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title='Available' />
+		),
+	},
+]

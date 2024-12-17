@@ -1,3 +1,4 @@
+import { useLocation } from '@remix-run/react'
 import { ChevronRight, type LucideIcon } from 'lucide-react'
 import {
 	Collapsible,
@@ -30,6 +31,11 @@ interface NavMainProps {
 	items: NavItem[]
 }
 
+function calculateIsActive(item: NavItem) {
+	const location = useLocation()
+	return item.items.some(subItem => location.pathname.startsWith(subItem.url))
+}
+
 export function NavMain({ items }: NavMainProps) {
 	return (
 		<SidebarGroup>
@@ -39,7 +45,7 @@ export function NavMain({ items }: NavMainProps) {
 					<Collapsible
 						key={item.title}
 						asChild
-						defaultOpen={item.isActive}
+						defaultOpen={calculateIsActive(item)}
 						className='group/collapsible'
 					>
 						<SidebarMenuItem>
