@@ -50,7 +50,13 @@ module.exports = {
 					{ name: 'NavLink', linkAttribute: 'to' },
 				],
 				'import/resolver': {
-					typescript: {},
+					typescript: {
+						project: './tsconfig.json', // Explicit path to tsconfig.json
+						alwaysTryTypes: true, // Tries type declarations
+					},
+					node: {
+						extensions: ['.ts', '.tsx'],
+					},
 				},
 			},
 		},
@@ -63,7 +69,10 @@ module.exports = {
 			parserOptions: {
 				project: ['./tsconfig.json'],
 				tsconfigRootDir: __dirname,
+				ecmaVersion: 'latest',
+				sourceType: 'module',
 			},
+			plugins: ['@typescript-eslint', 'import'],
 			rules: {
 				'@typescript-eslint/no-unused-vars': ['error'],
 				'@typescript-eslint/no-explicit-any': 'off',
@@ -73,6 +82,12 @@ module.exports = {
 				'prettier/prettier': ['error', {}, { usePrettierrc: true }],
 				'linebreak-style': ['error', 'unix'],
 			},
+			extends: [
+				'plugin:@typescript-eslint/recommended',
+				'plugin:import/recommended',
+				'plugin:import/typescript',
+				'plugin:prettier/recommended',
+			],
 			settings: {
 				'import/internal-regex': '^~/',
 				'import/resolver': {
@@ -80,16 +95,11 @@ module.exports = {
 						extensions: ['.ts', '.tsx'],
 					},
 					typescript: {
+						project: './tsconfig.json',
 						alwaysTryTypes: true,
 					},
 				},
 			},
-			extends: [
-				'plugin:@typescript-eslint/recommended',
-				'plugin:import/recommended',
-				'plugin:import/typescript',
-				'plugin:prettier/recommended',
-			],
 		},
 
 		// Node-specific settings
@@ -99,5 +109,8 @@ module.exports = {
 				node: true,
 			},
 		},
-	],
-}
+    rules: {
+        'import/no-unresolved': 'error',
+        '@typescript-eslint/no-unused-vars': 'warn',
+    },
+};

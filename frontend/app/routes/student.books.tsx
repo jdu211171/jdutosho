@@ -1,5 +1,6 @@
 import type { LoaderFunctionArgs } from '@remix-run/node'
 import { useLoaderData, useSearchParams } from '@remix-run/react'
+import { studentBookColumns } from '~/components/book-table/columns'
 import { DataTable } from '~/components/book-table/data-table'
 import { api } from '~/lib/api'
 import { requireStudentUser } from '~/services/auth.server'
