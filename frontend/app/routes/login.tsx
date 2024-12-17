@@ -11,7 +11,7 @@ import { Label } from '~/components/ui/label'
 import { Form, Link, useNavigation } from '@remix-run/react'
 import type { ActionFunctionArgs } from '@remix-run/node'
 import { data } from '@remix-run/node'
-import axios, { isAxiosError } from 'axios'
+import { isAxiosError } from 'axios'
 import { useActionData } from 'react-router'
 import type { LoginFormData } from '~/lib/validation'
 import { loginSchema } from '~/lib/validation'
@@ -19,6 +19,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { SessionData } from '~/types/auth'
 import { createUserSession } from '~/services/auth.server'
+import { api } from '~/lib/api'
+import invariant from 'tiny-invariant'
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
@@ -32,15 +34,11 @@ export async function action({ request }: ActionFunctionArgs) {
 	}
 
 	try {
-		const response = await axios.post<SessionData>(
-			`${process.env.API_URL}/login`,
-			{ loginID, password }
-		)
-
-		if (!response.data) {
-			throw new Error('Invalid credentials')
-		}
-
+		const response = await api.post<SessionData>(`/login`, {
+			loginID,
+			password,
+		})
+		invariant(response.status === 200, 'Invalid status code')
 		const { token, user } = response.data
 		return createUserSession(token, user)
 	} catch (error) {

@@ -1,10 +1,8 @@
-'use client'
-
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQuery } from '@tanstack/react-query'
-import { useState, useMemo, useEffect, KeyboardEvent } from 'react'
+import { useFetcher } from '@remix-run/react'
+import { KeyboardEvent, useEffect, useMemo, useState } from 'react'
 import _ from 'lodash'
 import { Button } from '~/components/ui/button'
 import {
@@ -26,8 +24,6 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { cn } from '~/lib/utils'
-import { useAuth } from '~/context/auth-provider'
-import axios from 'axios'
 
 interface Book {
 	id: string
@@ -64,19 +60,31 @@ export function LendBookDialog({
 	const [studentSearch, setStudentSearch] = useState('')
 	const [selectedBookIndex, setSelectedBookIndex] = useState(-1)
 	const [selectedStudentIndex, setSelectedStudentIndex] = useState(-1)
-	const [activeField, setActiveField] = useState<'book' | 'student' | null>(
-		null
-	)
+	const [, setActiveField] = useState<'book' | 'student' | null>(null)
 
 	const { debounce } = _
-	const { token } = useAuth()
+	const bookSearchFetcher = useFetcher<ApiResponse<Book>>()
+	const studentSearchFetcher = useFetcher<ApiResponse<Student>>()
 
 	const debouncedSetBookSearch = useMemo(
-		() => debounce((value: string) => setBookSearch(value), 300),
+		() =>
+			debounce((value: string) => {
+				setBookSearch(value)
+				if (value) {
+					bookSearchFetcher.load(`/librarian/books/search?q=${value}`)
+				}
+			}, 300),
 		[]
 	)
+
 	const debouncedSetStudentSearch = useMemo(
-		() => debounce((value: string) => setStudentSearch(value), 300),
+		() =>
+			debounce((value: string) => {
+				setStudentSearch(value)
+				if (value) {
+					studentSearchFetcher.load(`/librarian/students/search?q=${value}`)
+				}
+			}, 300),
 		[]
 	)
 
@@ -86,44 +94,6 @@ export function LendBookDialog({
 			bookId: initialBookId ?? '',
 			studentId: '',
 		},
-	})
-
-	const { data: booksData, isLoading: booksLoading } = useQuery<
-		ApiResponse<Book>,
-		Error
-	>({
-		queryKey: ['books', bookSearch],
-		queryFn: async () => {
-			const response = await axios.get(
-				`http://192.168.1.8:8000/api/books/list?search=${bookSearch}`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			)
-			return response.data as ApiResponse<Book>
-		},
-		enabled: bookSearch.length > 0,
-	})
-
-	const { data: studentsData, isLoading: studentsLoading } = useQuery<
-		ApiResponse<Student>,
-		Error
-	>({
-		queryKey: ['students', studentSearch],
-		queryFn: async () => {
-			const response = await axios.get(
-				`http://192.168.1.8:8000/api/users/list?search=${studentSearch}`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			)
-			return response.data as ApiResponse<Student>
-		},
-		enabled: studentSearch.length > 0,
 	})
 
 	const handleKeyNavigation = (
@@ -166,7 +136,6 @@ export function LendBookDialog({
 		}
 	}
 
-	// Reset selection when search changes
 	useEffect(() => {
 		setSelectedBookIndex(-1)
 	}, [bookSearch])
@@ -175,13 +144,14 @@ export function LendBookDialog({
 		setSelectedStudentIndex(-1)
 	}, [studentSearch])
 
-	const onSubmit = async (data: LendingFormData) => {
-		try {
-			console.log('Form submitted:', data)
-			setOpen(false)
-		} catch (error) {
-			console.error('Error submitting form:', error)
-		}
+	const lendFetcher = useFetcher()
+
+	const onSubmit = async (formData: LendingFormData) => {
+		lendFetcher.submit(
+			{ bookId: formData.bookId, studentId: formData.studentId },
+			{ method: 'POST', action: '/librarian/lend-book' }
+		)
+		setOpen(false)
 	}
 
 	const SearchResults = ({
@@ -243,54 +213,6 @@ export function LendBookDialog({
 					>
 						<FormField
 							control={form.control}
-							name='bookId'
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Book ID</FormLabel>
-									<FormControl>
-										<div className='relative'>
-											<Input
-												placeholder='Search Book ID...'
-												onChange={e => {
-													debouncedSetBookSearch(e.target.value)
-													field.onChange(e.target.value)
-												}}
-												onFocus={() => setActiveField('book')}
-												onKeyDown={e =>
-													handleKeyNavigation(
-														e,
-														booksData?.data,
-														setSelectedBookIndex,
-														selectedBookIndex,
-														'book'
-													)
-												}
-												autoComplete='off'
-												value={field.value}
-											/>
-											{bookSearch && (
-												<div className='absolute z-10 mt-1 w-full bg-background border rounded-md shadow-md max-h-60 overflow-y-auto'>
-													<SearchResults
-														type='book'
-														data={booksData}
-														isLoading={booksLoading}
-														selectedIndex={selectedBookIndex}
-														onSelect={value => {
-															form.setValue('bookId', value)
-															setBookSearch('')
-														}}
-													/>
-												</div>
-											)}
-										</div>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<FormField
-							control={form.control}
 							name='studentId'
 							render={({ field }) => (
 								<FormItem>
@@ -307,7 +229,7 @@ export function LendBookDialog({
 												onKeyDown={e =>
 													handleKeyNavigation(
 														e,
-														studentsData?.data,
+														studentSearchFetcher.data?.data,
 														setSelectedStudentIndex,
 														selectedStudentIndex,
 														'student'
@@ -320,8 +242,10 @@ export function LendBookDialog({
 												<div className='absolute z-10 mt-1 w-full bg-background border rounded-md shadow-md max-h-60 overflow-y-auto'>
 													<SearchResults
 														type='student'
-														data={studentsData}
-														isLoading={studentsLoading}
+														data={
+															studentSearchFetcher.data as ApiResponse<Student>
+														}
+														isLoading={studentSearchFetcher.state === 'loading'}
 														selectedIndex={selectedStudentIndex}
 														onSelect={value => {
 															form.setValue('studentId', value)
@@ -337,8 +261,62 @@ export function LendBookDialog({
 							)}
 						/>
 
+						<FormField
+							control={form.control}
+							name='bookId'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Book ID</FormLabel>
+									<FormControl>
+										<div className='relative'>
+											<Input
+												placeholder='Search Book ID...'
+												onChange={e => {
+													debouncedSetBookSearch(e.target.value)
+													field.onChange(e.target.value)
+												}}
+												onFocus={() => setActiveField('book')}
+												onKeyDown={e =>
+													handleKeyNavigation(
+														e,
+														bookSearchFetcher.data?.data,
+														setSelectedBookIndex,
+														selectedBookIndex,
+														'book'
+													)
+												}
+												autoComplete='off'
+												value={field.value}
+											/>
+											{bookSearch && (
+												<div className='absolute z-10 mt-1 w-full bg-background border rounded-md shadow-md max-h-60 overflow-y-auto'>
+													<SearchResults
+														type='book'
+														data={bookSearchFetcher.data}
+														isLoading={bookSearchFetcher.state === 'loading'}
+														selectedIndex={selectedBookIndex}
+														onSelect={value => {
+															form.setValue('bookId', value)
+															setBookSearch('')
+														}}
+													/>
+												</div>
+											)}
+										</div>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 						<DialogFooter>
-							<Button type='submit'>Lend Book</Button>
+							<Button
+								type='submit'
+								disabled={lendFetcher.state === 'submitting'}
+							>
+								{lendFetcher.state === 'submitting'
+									? 'Lending...'
+									: 'Lend Book'}
+							</Button>
 						</DialogFooter>
 					</form>
 				</Form>

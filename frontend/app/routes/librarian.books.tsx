@@ -3,11 +3,7 @@ import type { ActionFunctionArgs } from '@remix-run/node'
 import { data } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { getSessionToken } from 'app/services/auth.server'
-import {
-	useLoaderData,
-	useOutletContext,
-	useSearchParams,
-} from '@remix-run/react'
+import { useLoaderData, useSearchParams } from '@remix-run/react'
 import { DataTable } from '~/components/book-table/data-table'
 
 export const metadata = {

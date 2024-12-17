@@ -24,8 +24,6 @@ export async function createUserSession(token: string, user: User) {
 	session.set('token', token)
 	session.set('user', user)
 
-	console.log('Redirecting user with role:', user.role)
-
 	const redirectTo =
 		user.role === 'librarian' ? '/librarian/books' : '/student/books'
 
@@ -91,7 +89,6 @@ export async function logout(request: Request) {
 	})
 }
 
-// Utility function to get the auth token for API calls
 export async function getAuthToken(request: Request) {
 	const session = await authSessionStorage.getSession(
 		request.headers.get('Cookie')
