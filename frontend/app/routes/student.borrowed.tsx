@@ -4,6 +4,8 @@ import { api } from '~/lib/api'
 import { requireStudentUser } from '~/services/auth.server'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { CalendarDays, BookOpen, User } from 'lucide-react'
+import { toast } from '~/hooks/use-toast'
+import { useEffect } from 'react'
 
 type BorrowedBook = {
 	id: number
@@ -36,28 +38,47 @@ export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	const bookId = formData.get('bookId')
 
-	console.log('bookId: ', bookId)
-	console.log('user: ', user)
 	try {
-		console.log('inside try')
-		const response = await api.put(`/student/${bookId}/return`, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
+		const response = await api.put(
+			`/student/${bookId}/return`,
+			null, // empty body
+			{
+				headers: {
+					Authorization: `Bearer ${user.token}`,
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			}
+		)
+
 		if (response.status !== 200) {
 			return { success: false }
 		}
 		return { success: true }
 	} catch (error) {
-		console.log('error: ', error)
+		console.error('Return book error:', error)
 		return { success: false }
 	}
 }
 
 function BookCard({ book }: { book: BorrowedBook }) {
-	const fetcher = useFetcher()
+	const fetcher = useFetcher<{ success: boolean }>()
 	const isReturning = fetcher.state !== 'idle'
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.success === true) {
+			toast({
+				title: 'Book returned successfully',
+				description: 'The book has been returned successfully',
+			})
+		} else if (fetcher.state === 'idle' && fetcher.data?.success === false) {
+			toast({
+				title: 'Failed to return book',
+				variant: 'destructive',
+				description: 'Failed to return the book',
+			})
+		}
+	}, [fetcher.state, fetcher.data?.success])
 
 	return (
 		<Card key={book.id}>

@@ -27,7 +27,7 @@ export async function createUserSession(token: string, user: User) {
 	console.log('Redirecting user with role:', user.role)
 
 	const redirectTo =
-		user.role === 'librarian' ? '/librarian/books' : '/student/books'
+		user.role === 'librarian' ? '/librarian' : '/student'
 
 	return redirect(redirectTo, {
 		headers: {
@@ -63,7 +63,7 @@ export async function requireLibrarianUser(request: Request) {
 	const userSession = await requireUser(request)
 
 	if (userSession.user.role !== 'librarian') {
-		throw redirect('/	login')
+		throw redirect('/login')
 	}
 
 	return userSession
