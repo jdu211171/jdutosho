@@ -1,9 +1,10 @@
-import { useLoaderData } from '@remix-run/react'
-import type { LoaderFunctionArgs } from '@remix-run/node'
+import { useLoaderData, useFetcher } from '@remix-run/react'
+import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { requireStudentUser } from '~/services/auth.server'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { CalendarDays, BookOpen, User } from 'lucide-react'
+import { json } from '@remix-run/node'
 
 type BorrowedBook = {
 	id: number
@@ -31,6 +32,69 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	}
 }
 
+export async function action({ request }: ActionFunctionArgs) {
+	const user = await requireStudentUser(request)
+	const formData = await request.formData()
+	const bookId = formData.get('bookId')
+
+	console.log('bookId: ', bookId)
+	console.log('user: ', user)
+	try {
+		console.log('inside try')
+		const response = await api.post(`/student/${bookId}/return`, {
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${user.token}`,
+			},
+		})
+		console.log('response: ', response, response.data)
+		return { success: true }
+	} catch (error) {
+		console.log('error: ', error)
+		return { success: false }
+	}
+}
+
+function BookCard({ book }: { book: BorrowedBook }) {
+	const fetcher = useFetcher()
+	const isReturning = fetcher.state !== 'idle'
+
+	return (
+		<Card key={book.id}>
+			<CardHeader>
+				<CardTitle className='text-lg font-bold'>{book.book}</CardTitle>
+				<p className='text-sm text-muted-foreground'>Code: {book.book_code}</p>
+			</CardHeader>
+			<CardContent className='space-y-3'>
+				<div className='flex items-center space-x-2'>
+					<User className='h-4 w-4 text-muted-foreground' />
+					<span className='text-sm'>Given by: {book.given_by}</span>
+				</div>
+				<div className='flex items-center space-x-2'>
+					<CalendarDays className='h-4 w-4 text-muted-foreground' />
+					<span className='text-sm'>
+						Borrowed on: {book.given_date} ({book.passed_days} days ago)
+					</span>
+				</div>
+				<div className='flex items-center space-x-2'>
+					<BookOpen className='h-4 w-4 text-muted-foreground' />
+					<span className='text-sm'>Status: {book.status}</span>
+				</div>
+				<fetcher.Form method='post'>
+					<input type='hidden' name='bookId' value={book.id} />
+					<button
+						type='submit'
+						disabled={isReturning}
+						className='w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md'
+					>
+						{isReturning ? 'Returning...' : 'Return Book'}
+					</button>
+				</fetcher.Form>
+			</CardContent>
+		</Card>
+	)
+}
+
 export default function StudentBorrowedBooks() {
 	const { books } = useLoaderData<typeof loader>()
 
@@ -53,30 +117,7 @@ export default function StudentBorrowedBooks() {
 	return (
 		<div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
 			{books.map(book => (
-				<Card key={book.id}>
-					<CardHeader>
-						<CardTitle className='text-lg font-bold'>{book.book}</CardTitle>
-						<p className='text-sm text-muted-foreground'>
-							Code: {book.book_code}
-						</p>
-					</CardHeader>
-					<CardContent className='space-y-3'>
-						<div className='flex items-center space-x-2'>
-							<User className='h-4 w-4 text-muted-foreground' />
-							<span className='text-sm'>Given by: {book.given_by}</span>
-						</div>
-						<div className='flex items-center space-x-2'>
-							<CalendarDays className='h-4 w-4 text-muted-foreground' />
-							<span className='text-sm'>
-								Borrowed on: {book.given_date} ({book.passed_days} days ago)
-							</span>
-						</div>
-						<div className='flex items-center space-x-2'>
-							<BookOpen className='h-4 w-4 text-muted-foreground' />
-							<span className='text-sm'>Status: {book.status}</span>
-						</div>
-					</CardContent>
-				</Card>
+				<BookCard key={book.id} book={book} />
 			))}
 		</div>
 	)
