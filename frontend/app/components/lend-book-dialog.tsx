@@ -28,6 +28,8 @@ import { Input } from '~/components/ui/input'
 import { cn } from '~/lib/utils'
 import { useAuth } from '~/context/auth-provider'
 import axios from 'axios'
+import { api } from '~/lib/api'
+import { toast } from '~/hooks/use-toast'
 
 interface Book {
 	id: string
@@ -94,14 +96,11 @@ export function LendBookDialog({
 	>({
 		queryKey: ['books', bookSearch],
 		queryFn: async () => {
-			const response = await axios.get(
-				`http://192.168.1.8:8000/api/books/list?search=${bookSearch}`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			)
+			const response = await api.get(`/books/list?search=${bookSearch}`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			})
 			return response.data as ApiResponse<Book>
 		},
 		enabled: bookSearch.length > 0,
@@ -113,14 +112,11 @@ export function LendBookDialog({
 	>({
 		queryKey: ['students', studentSearch],
 		queryFn: async () => {
-			const response = await axios.get(
-				`http://192.168.1.8:8000/api/users/list?search=${studentSearch}`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			)
+			const response = await api.get(`/users/list?search=${studentSearch}`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			})
 			return response.data as ApiResponse<Student>
 		},
 		enabled: studentSearch.length > 0,
