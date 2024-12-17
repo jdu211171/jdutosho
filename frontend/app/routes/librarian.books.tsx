@@ -3,7 +3,11 @@ import type { ActionFunctionArgs } from '@remix-run/node'
 import { data } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { getSessionToken } from 'app/services/auth.server'
-import { useLoaderData, useSearchParams } from '@remix-run/react'
+import {
+	useLoaderData,
+	useOutletContext,
+	useSearchParams,
+} from '@remix-run/react'
 import { DataTable } from '~/components/book-table/data-table'
 
 export const metadata = {
@@ -14,6 +18,7 @@ export const metadata = {
 export const loader = async ({ request }: ActionFunctionArgs) => {
 	const url = new URL(request.url)
 	const token = await getSessionToken(request)
+
 	const page = url.searchParams.get('page') || '1'
 	const search = url.searchParams.get('search') || ''
 
@@ -32,6 +37,7 @@ export const loader = async ({ request }: ActionFunctionArgs) => {
 			meta: response.data.meta || {},
 			currentPage: parseInt(page),
 			search,
+			token,
 		})
 	} catch (error) {
 		console.error('API Error:', error)
@@ -42,6 +48,7 @@ export const loader = async ({ request }: ActionFunctionArgs) => {
 				meta: {},
 				currentPage: 1,
 				search: '',
+				token,
 			},
 			{
 				status: 500,

@@ -41,8 +41,6 @@ export async function action({ request }: ActionFunctionArgs) {
 			throw new Error('Invalid credentials')
 		}
 
-		console.log(response.data)
-
 		const { token, user } = response.data
 		return createUserSession(token, user)
 	} catch (error) {

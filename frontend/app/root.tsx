@@ -15,6 +15,8 @@ import { themeSessionResolver } from '~/services/theme.server'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { QueryClient } from '@tanstack/query-core'
 import { QueryClientProvider } from '@tanstack/react-query'
+import { getSessionToken } from './services/auth.server'
+import { AuthProvider } from './context/auth-provider'
 
 export const links: LinksFunction = () => [
 	{ rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -31,28 +33,34 @@ export const links: LinksFunction = () => [
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const { getTheme } = await themeSessionResolver(request)
+	const token = await getSessionToken(request)
 	return {
 		theme: getTheme(),
 		ENV: {
 			API_URL: process.env.API_URL,
 		},
+		token,
 	}
 }
 
 const queryClient = new QueryClient()
 
 export default function AppWithProviders() {
-	const theme = useLoaderData<typeof loader>()
+	const data = useLoaderData<typeof loader>()
 	return (
-		<ThemeProvider specifiedTheme={theme.theme} themeAction='action/set-theme'>
-			<App />
+		<ThemeProvider specifiedTheme={data.theme} themeAction='action/set-theme'>
+			<AuthProvider initialToken={data.token ?? null}>
+				<App />
+			</AuthProvider>
 		</ThemeProvider>
 	)
 }
 
 function App() {
 	const data = useLoaderData<typeof loader>()
+
 	const [theme] = useTheme()
+
 	return (
 		<html lang='en' className={theme ?? ''}>
 			<head>

@@ -4,9 +4,8 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
-import type React from 'react'
-import { useState } from 'react'
+import { useState, useMemo, useEffect, KeyboardEvent } from 'react'
+import _ from 'lodash'
 import { Button } from '~/components/ui/button'
 import {
 	Dialog,
@@ -25,20 +24,10 @@ import {
 	FormLabel,
 	FormMessage,
 } from '~/components/ui/form'
-import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-} from '~/components/ui/command'
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from '~/components/ui/popover'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { Input } from '~/components/ui/input'
 import { cn } from '~/lib/utils'
+import { useAuth } from '~/context/auth-provider'
+import axios from 'axios'
 
 interface Book {
 	id: string
@@ -73,8 +62,23 @@ export function LendBookDialog({
 	const [open, setOpen] = useState(false)
 	const [bookSearch, setBookSearch] = useState('')
 	const [studentSearch, setStudentSearch] = useState('')
-	const [bookPopoverOpen, setBookPopoverOpen] = useState(false)
-	const [studentPopoverOpen, setStudentPopoverOpen] = useState(false)
+	const [selectedBookIndex, setSelectedBookIndex] = useState(-1)
+	const [selectedStudentIndex, setSelectedStudentIndex] = useState(-1)
+	const [activeField, setActiveField] = useState<'book' | 'student' | null>(
+		null
+	)
+
+	const { debounce } = _
+	const { token } = useAuth()
+
+	const debouncedSetBookSearch = useMemo(
+		() => debounce((value: string) => setBookSearch(value), 300),
+		[]
+	)
+	const debouncedSetStudentSearch = useMemo(
+		() => debounce((value: string) => setStudentSearch(value), 300),
+		[]
+	)
 
 	const form = useForm<LendingFormData>({
 		resolver: zodResolver(lendingSchema),
@@ -84,35 +88,92 @@ export function LendBookDialog({
 		},
 	})
 
-	const { data: booksData, isLoading: isLoadingBooks } = useQuery<
+	const { data: booksData, isLoading: booksLoading } = useQuery<
 		ApiResponse<Book>,
 		Error
 	>({
 		queryKey: ['books', bookSearch],
 		queryFn: async () => {
-			if (!bookSearch) return { data: [] }
-			const response = await axios.get<ApiResponse<Book>>(
-				`/books/list?search=${bookSearch}`
+			const response = await axios.get(
+				`http://192.168.1.8:8000/api/books/list?search=${bookSearch}`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
 			)
-			return response.data
+			return response.data as ApiResponse<Book>
 		},
 		enabled: bookSearch.length > 0,
 	})
 
-	const { data: studentsData, isLoading: isLoadingStudents } = useQuery<
+	const { data: studentsData, isLoading: studentsLoading } = useQuery<
 		ApiResponse<Student>,
 		Error
 	>({
 		queryKey: ['students', studentSearch],
 		queryFn: async () => {
-			if (!studentSearch) return { data: [] }
-			const response = await axios.get<ApiResponse<Student>>(
-				`/users/list?search=${studentSearch}`
+			const response = await axios.get(
+				`http://192.168.1.8:8000/api/users/list?search=${studentSearch}`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
 			)
-			return response.data
+			return response.data as ApiResponse<Student>
 		},
 		enabled: studentSearch.length > 0,
 	})
+
+	const handleKeyNavigation = (
+		e: KeyboardEvent,
+		items: Book[] | Student[] | undefined,
+		setIndex: (index: number) => void,
+		currentIndex: number,
+		field: 'book' | 'student'
+	) => {
+		if (!items?.length) return
+
+		switch (e.key) {
+			case 'ArrowDown':
+				e.preventDefault()
+				setIndex(Math.min(currentIndex + 1, items.length - 1))
+				break
+			case 'ArrowUp':
+				e.preventDefault()
+				setIndex(Math.max(currentIndex - 1, 0))
+				break
+			case 'Enter':
+				e.preventDefault()
+				if (currentIndex >= 0) {
+					const selected = items[currentIndex]
+					if (field === 'book') {
+						form.setValue('bookId', (selected as Book).code)
+						setBookSearch('')
+					} else {
+						form.setValue('studentId', (selected as Student).loginID)
+						setStudentSearch('')
+					}
+					setIndex(-1)
+				}
+				break
+			case 'Escape':
+				e.preventDefault()
+				field === 'book' ? setBookSearch('') : setStudentSearch('')
+				setIndex(-1)
+				break
+		}
+	}
+
+	// Reset selection when search changes
+	useEffect(() => {
+		setSelectedBookIndex(-1)
+	}, [bookSearch])
+
+	useEffect(() => {
+		setSelectedStudentIndex(-1)
+	}, [studentSearch])
 
 	const onSubmit = async (data: LendingFormData) => {
 		try {
@@ -121,6 +182,47 @@ export function LendBookDialog({
 		} catch (error) {
 			console.error('Error submitting form:', error)
 		}
+	}
+
+	const SearchResults = ({
+		type,
+		data,
+		isLoading,
+		selectedIndex,
+		onSelect,
+	}: {
+		type: 'book' | 'student'
+		data?: ApiResponse<Book | Student>
+		isLoading: boolean
+		selectedIndex: number
+		onSelect: (value: string) => void
+	}) => {
+		if (isLoading) {
+			return <div className='p-2 text-foreground'>Loading...</div>
+		}
+
+		if (!data?.data.length) {
+			return <div className='p-2 text-foreground'>No results found</div>
+		}
+
+		return data.data.map((item, index) => {
+			const value =
+				type === 'book' ? (item as Book).code : (item as Student).loginID
+			return (
+				<div
+					key={item.id}
+					className={cn(
+						'cursor-pointer px-4 py-2 hover:bg-accent/50 transition-colors',
+						index === selectedIndex && 'bg-accent text-accent-foreground',
+						form.getValues(type === 'book' ? 'bookId' : 'studentId') ===
+							value && 'font-medium'
+					)}
+					onClick={() => onSelect(value)}
+				>
+					{value}
+				</div>
+			)
+		})
 	}
 
 	return (
@@ -143,63 +245,45 @@ export function LendBookDialog({
 							control={form.control}
 							name='bookId'
 							render={({ field }) => (
-								<FormItem className='flex flex-col'>
+								<FormItem>
 									<FormLabel>Book ID</FormLabel>
-									<Popover
-										open={bookPopoverOpen}
-										onOpenChange={setBookPopoverOpen}
-									>
-										<PopoverTrigger asChild>
-											<FormControl>
-												<Button
-													variant='outline'
-													role='combobox'
-													className={cn(
-														'justify-between',
-														!field.value && 'text-muted-foreground'
-													)}
-												>
-													{field.value || 'Select book...'}
-													<ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-												</Button>
-											</FormControl>
-										</PopoverTrigger>
-										<PopoverContent className='w-[300px] p-0'>
-											<Command>
-												<CommandInput
-													placeholder='Search book ID...'
-													onValueChange={setBookSearch}
-												/>
-												{isLoadingBooks ? (
-													<CommandEmpty>Loading books...</CommandEmpty>
-												) : (
-													<CommandEmpty>No book found</CommandEmpty>
-												)}
-												<CommandGroup>
-													{booksData?.data.map(book => (
-														<CommandItem
-															key={book.id}
-															value={book.code}
-															onSelect={() => {
-																form.setValue('bookId', book.code)
-																setBookPopoverOpen(false)
-															}}
-														>
-															<Check
-																className={cn(
-																	'mr-2 h-4 w-4',
-																	book.code === field.value
-																		? 'opacity-100'
-																		: 'opacity-0'
-																)}
-															/>
-															{book.code}
-														</CommandItem>
-													))}
-												</CommandGroup>
-											</Command>
-										</PopoverContent>
-									</Popover>
+									<FormControl>
+										<div className='relative'>
+											<Input
+												placeholder='Search Book ID...'
+												onChange={e => {
+													debouncedSetBookSearch(e.target.value)
+													field.onChange(e.target.value)
+												}}
+												onFocus={() => setActiveField('book')}
+												onKeyDown={e =>
+													handleKeyNavigation(
+														e,
+														booksData?.data,
+														setSelectedBookIndex,
+														selectedBookIndex,
+														'book'
+													)
+												}
+												autoComplete='off'
+												value={field.value}
+											/>
+											{bookSearch && (
+												<div className='absolute z-10 mt-1 w-full bg-background border rounded-md shadow-md max-h-60 overflow-y-auto'>
+													<SearchResults
+														type='book'
+														data={booksData}
+														isLoading={booksLoading}
+														selectedIndex={selectedBookIndex}
+														onSelect={value => {
+															form.setValue('bookId', value)
+															setBookSearch('')
+														}}
+													/>
+												</div>
+											)}
+										</div>
+									</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -209,63 +293,45 @@ export function LendBookDialog({
 							control={form.control}
 							name='studentId'
 							render={({ field }) => (
-								<FormItem className='flex flex-col'>
+								<FormItem>
 									<FormLabel>Student ID</FormLabel>
-									<Popover
-										open={studentPopoverOpen}
-										onOpenChange={setStudentPopoverOpen}
-									>
-										<PopoverTrigger asChild>
-											<FormControl>
-												<Button
-													variant='outline'
-													role='combobox'
-													className={cn(
-														'justify-between',
-														!field.value && 'text-muted-foreground'
-													)}
-												>
-													{field.value || 'Select student...'}
-													<ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-												</Button>
-											</FormControl>
-										</PopoverTrigger>
-										<PopoverContent className='w-[300px] p-0'>
-											<Command>
-												<CommandInput
-													placeholder='Search student ID...'
-													onValueChange={setStudentSearch}
-												/>
-												{isLoadingStudents ? (
-													<CommandEmpty>Loading students...</CommandEmpty>
-												) : (
-													<CommandEmpty>No student found</CommandEmpty>
-												)}
-												<CommandGroup>
-													{studentsData?.data.map(student => (
-														<CommandItem
-															key={student.id}
-															value={student.loginID}
-															onSelect={() => {
-																form.setValue('studentId', student.loginID)
-																setStudentPopoverOpen(false)
-															}}
-														>
-															<Check
-																className={cn(
-																	'mr-2 h-4 w-4',
-																	student.loginID === field.value
-																		? 'opacity-100'
-																		: 'opacity-0'
-																)}
-															/>
-															{student.loginID}
-														</CommandItem>
-													))}
-												</CommandGroup>
-											</Command>
-										</PopoverContent>
-									</Popover>
+									<FormControl>
+										<div className='relative'>
+											<Input
+												placeholder='Search Student ID...'
+												onChange={e => {
+													debouncedSetStudentSearch(e.target.value)
+													field.onChange(e.target.value)
+												}}
+												onFocus={() => setActiveField('student')}
+												onKeyDown={e =>
+													handleKeyNavigation(
+														e,
+														studentsData?.data,
+														setSelectedStudentIndex,
+														selectedStudentIndex,
+														'student'
+													)
+												}
+												autoComplete='off'
+												value={field.value}
+											/>
+											{studentSearch && (
+												<div className='absolute z-10 mt-1 w-full bg-background border rounded-md shadow-md max-h-60 overflow-y-auto'>
+													<SearchResults
+														type='student'
+														data={studentsData}
+														isLoading={studentsLoading}
+														selectedIndex={selectedStudentIndex}
+														onSelect={value => {
+															form.setValue('studentId', value)
+															setStudentSearch('')
+														}}
+													/>
+												</div>
+											)}
+										</div>
+									</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
