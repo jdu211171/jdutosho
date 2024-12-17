@@ -54,9 +54,11 @@ const routeMap: Record<string, RouteMapItem> = {
 
 export function DynamicBreadcrumb() {
 	const matches = useMatches()
+	console.log(matches)
 
 	const breadcrumbs = matches
 		.filter(match => match.id !== 'root')
+		.filter(match => !match.id.includes('._index'))
 		.map(match => {
 			const routeId = match.id.replace(/\$/g, '')
 			if (routeId.includes('._index')) return null
@@ -66,8 +68,6 @@ export function DynamicBreadcrumb() {
 				path: routeMap[routeId]?.path || match.pathname,
 			}
 		})
-
-	if (breadcrumbs.includes(null)) breadcrumbs.pop()
 
 	if (breadcrumbs.length === 0) return null
 
