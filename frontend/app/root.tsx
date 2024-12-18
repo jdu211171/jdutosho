@@ -5,6 +5,7 @@ import {
 	Scripts,
 	ScrollRestoration,
 	useLoaderData,
+	json,
 } from '@remix-run/react'
 import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/node'
 
@@ -33,13 +34,13 @@ export const links: LinksFunction = () => [
 export async function loader({ request }: LoaderFunctionArgs) {
 	const { getTheme } = await themeSessionResolver(request)
 	const token = await getSessionToken(request)
-	return {
+	return json({
 		theme: getTheme(),
 		ENV: {
 			API_URL: process.env.API_URL,
 		},
 		token,
-	}
+	})
 }
 
 const queryClient = new QueryClient()
@@ -47,28 +48,25 @@ const queryClient = new QueryClient()
 export default function AppWithProviders() {
 	const data = useLoaderData<typeof loader>()
 	return (
-		<ThemeProvider specifiedTheme={data.theme} themeAction='action/set-theme'>
+		<ThemeProvider specifiedTheme={data.theme} themeAction='/action/set-theme'>
 			<App />
 		</ThemeProvider>
 	)
 }
 
 function App() {
-	const data = useLoaderData<typeof loader>()
-
 	const [theme] = useTheme()
 
 	return (
-		<html lang='en' className={theme ?? ''}>
+		<html lang='en' className={`${theme} h-full`} suppressHydrationWarning>
 			<head>
 				<meta charSet='utf-8' />
 				<meta name='viewport' content='width=device-width,initial-scale=1' />
 				<Meta />
-				<PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
+				<PreventFlashOnWrongTheme ssrTheme={true} />
 				<Links />
-				<title />
 			</head>
-			<body>
+			<body className='min-h-screen bg-background font-sans antialiased'>
 				<SidebarProvider>
 					<QueryClientProvider client={queryClient}>
 						<Outlet />

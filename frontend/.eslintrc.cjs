@@ -82,6 +82,8 @@ module.exports = {
 				'linebreak-style': ['error', 'unix'],
 			},
 			extends: [
+				'@remix-run/eslint-config', // Don't change this
+				'@remix-run/eslint-config/node', // Don't change this
 				'plugin:@typescript-eslint/recommended',
 				'plugin:import/recommended',
 				'plugin:import/typescript',

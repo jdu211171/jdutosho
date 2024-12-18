@@ -1,17 +1,16 @@
-import { createThemeSessionResolver } from 'remix-themes'
 import { createCookieSessionStorage } from '@remix-run/node'
+import { createThemeSessionResolver } from 'remix-themes'
 
-const isProduction = process.env.NODE_ENV === 'production'
-
-const sessionStorage = createCookieSessionStorage({
+const themeStorage = createCookieSessionStorage({
 	cookie: {
-		name: 'theme',
+		name: '__theme',
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
 		secrets: ['s3cr3t'],
-		...(isProduction ? { domain: 'jdutosho.uz', secure: true } : {}),
+		secure: process.env.NODE_ENV === 'production',
+		maxAge: 34560000, // 400 days
 	},
 })
 
-export const themeSessionResolver = createThemeSessionResolver(sessionStorage)
+export const themeSessionResolver = createThemeSessionResolver(themeStorage)

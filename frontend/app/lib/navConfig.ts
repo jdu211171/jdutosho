@@ -48,8 +48,15 @@ export const navConfig: NavConfig = {
 			items: [
 				{ title: 'All Books', url: '/librarian/books' },
 				{ title: 'Add New Book', url: '/librarian/books/new' },
-				{ title: 'Pending Requests', url: '/librarian/rents/pending' },
-				{ title: 'Borrowed Books', url: '/librarian/rents/borrowed' },
+			],
+		},
+		{
+			title: 'Rentals',
+			url: '/librarian/rents',
+			icon: BookCopy,
+			items: [
+				{ title: 'All Rentals', url: '/librarian/rents' },
+				{ title: 'Pending Returns', url: '/librarian/rents/pending' },
 			],
 		},
 		{
@@ -57,17 +64,17 @@ export const navConfig: NavConfig = {
 			url: '/librarian/categories',
 			icon: GraduationCap,
 			items: [
-				{ title: 'All Categories', url: '/librarian/categories' },
-				{ title: 'Add New Category', url: '/librarian/categories/new' },
+				{ title: 'All Categories', url: '/librarian/book-categories' },
+				{ title: 'Add Category', url: '/librarian/book-categories/new' },
 			],
 		},
 		{
 			title: 'Students',
-			url: '/librarian/students',
+			url: '/librarian/users',
 			icon: UsersRound,
 			items: [
-				{ title: 'All Students', url: '/librarian/students' },
-				{ title: 'Add New Student', url: '/librarian/students/new' },
+				{ title: 'All Students', url: '/librarian/users' },
+				{ title: 'Add Student', url: '/librarian/users/new' },
 			],
 		},
 	],
@@ -78,8 +85,7 @@ export const navConfig: NavConfig = {
 			icon: BookCopy,
 			items: [
 				{ title: 'Available Books', url: '/student/books' },
-				{ title: 'My Borrowed Books', url: '/student/borrowed' },
-				{ title: 'Rent History', url: '/student/history' },
+				{ title: 'My Borrowed Books', url: '/student/rents' },
 			],
 		},
 	],
