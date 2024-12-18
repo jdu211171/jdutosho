@@ -8,12 +8,14 @@ class RentBook extends Model
 {
     protected $table = 'rent_books';
     protected $fillable = [
+        'book_code_id',
         'taken_by',
         'given_by',
         'book_id',
         'book_code_id',
         'given_date',
         'return_date',
+        'accepted_by'
     ];
 
     protected $casts = [

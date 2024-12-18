@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AcceptRentRequest;
 use App\Http\Requests\StoreRentRequest;
 use App\Http\Resources\RentResource;
 use App\Models\BookCode;
@@ -58,33 +59,68 @@ class RentController extends Controller
         return new RentResource($rent);
     }
 
-    public function pending()
+    public function pending(Request $request)
     {
-        $rents = RentBook::whereNull('return_date')
+        $query = RentBook::whereNull('return_date')
             ->whereHas('bookCode', function ($query) {
                 $query->where('status', 'pending');
-            })->selectRaw('*, DATEDIFF(CURDATE(), given_date) as passed_days')
-            ->orderBy('passed_days', 'desc')
+            })
+            ->selectRaw('*, DATEDIFF(CURDATE(), given_date) as passed_days');
+
+        // Add search by book code and student ID if provided
+        if ($request->has('book_code')) {
+            $query->whereHas('bookCode', function ($q) use ($request) {
+                $q->where('code', $request->book_code);
+            });
+        }
+
+        if ($request->has('login_id')) {
+            $query->whereHas('takenByUser', function ($q) use ($request) {
+                $q->where('loginID', $request->login_id);
+            });
+        }
+
+        $rents = $query->orderBy('passed_days', 'desc')
             ->paginate(10);
 
         return RentResource::collection($rents);
     }
-
-    public function accept($id)
+    public function accept(AcceptRentRequest $request)
     {
-        $rent = RentBook::find($id);
+        $validated = $request->validated();
+
+        // Find the student
+        $student = User::where('loginID', $validated['login_id'])->firstOrFail();
+        if ($student->role !== 'student') {
+            return response()->json(['message' => 'Invalid student ID'], 400);
+        }
+
+        // Find the book
+        $bookCode = BookCode::where('code', $validated['book_code'])->firstOrFail();
+
+        // Find the rent record
+        $rent = RentBook::where([
+            'book_code_id' => $bookCode->id,
+            'taken_by' => $student->id,
+        ])
+            ->whereNull('return_date')
+            ->first();
 
         if (!$rent) {
-            return response()->json(['message' => 'Rent not found'], 404);
+            return response()->json(['message' => 'No pending return found for this book and student'], 404);
         }
 
         if ($rent->bookCode->status !== 'pending') {
-            return response()->json(['message' => 'This book can\'t be accepted'], 400);
+            return response()->json(['message' => 'This book is not pending return'], 400);
         }
-        $rent->bookCode->status = 'exist';
-        $rent->bookCode->save();
 
+        // Update book status
+        $bookCode->status = 'exist';
+        $bookCode->save();
+
+        // Update rent record
         $rent->return_date = now();
+        $rent->accepted_by = auth()->user()->id;
         $rent->save();
 
         return new RentResource($rent);
