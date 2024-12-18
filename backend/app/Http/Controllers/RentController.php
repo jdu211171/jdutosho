@@ -70,17 +70,34 @@ class RentController extends Controller
         return RentResource::collection($rents);
     }
 
-    public function accept($id)
+    public function accept(Request $request, $id)
     {
+        $validated = $request->validate([
+            'book_code' => 'required|string',
+            'login_id' => 'required|string',
+        ]);
+
         $rent = RentBook::find($id);
 
         if (!$rent) {
             return response()->json(['message' => 'Rent not found'], 404);
         }
 
+        $bookCode = BookCode::where('code', $validated['book_code'])->first();
+        $student = User::where('loginID', $validated['login_id'])->first();
+
+        if (!$bookCode || !$student) {
+            return response()->json(['message' => 'Invalid book code or student login ID'], 400);
+        }
+
+        if ($rent->bookCode->id !== $bookCode->id || $rent->takenBy->id !== $student->id) {
+            return response()->json(['message' => 'The provided book code and login ID do not match the rent record'], 400);
+        }
+
         if ($rent->bookCode->status !== 'pending') {
             return response()->json(['message' => 'This book can\'t be accepted'], 400);
         }
+
         $rent->bookCode->status = 'exist';
         $rent->bookCode->save();
 
