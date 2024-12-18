@@ -1,5 +1,8 @@
 import { BookOpen, Users, History, Clock, BookMarked } from 'lucide-react'
-import type { LibrarianDashboardData, StudentDashboardData } from '~/types/dashboard'
+import type {
+	LibrarianDashboardData,
+	StudentDashboardData,
+} from '~/types/dashboard'
 
 export const getLibrarianDashboardConfig = (stats: LibrarianDashboardData) => [
 	{
