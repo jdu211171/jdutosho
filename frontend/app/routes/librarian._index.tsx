@@ -2,23 +2,18 @@ import { useLoaderData, useRevalidator } from '@remix-run/react'
 import type { LoaderFunctionArgs } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { requireLibrarianUser } from '~/services/auth.server'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { BookOpen, Users, History, Clock } from 'lucide-react'
 import { useEffect } from 'react'
-import { Skeleton } from '~/components/ui/skeleton'
+import { StatCard } from '~/components/dashboard/stat-card'
+import { getLibrarianDashboardConfig } from '~/config/dashboard'
+import type { LibrarianDashboardData } from '~/types/dashboard'
 
-type DashboardData = {
-	totalBooks: number
-	activeStudents: number
-	totalRents: number
-	averageRentDays: number
-}
+const REFRESH_INTERVAL = 30000 // 30 seconds
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const user = await requireLibrarianUser(request)
 
 	try {
-		const response = await api.get<{ data: DashboardData }>(
+		const response = await api.get<{ data: LibrarianDashboardData }>(
 			'/librarian/dashboard',
 			{
 				headers: {
@@ -28,9 +23,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				},
 			}
 		)
-		return { stats: response.data.data, timestamp: Date.now() }
+		return { stats: response.data.data, timestamp: Date.now(), error: null }
 	} catch (error) {
-		console.error('Auth error:', error)
+		console.error('Dashboard error:', error)
 		return {
 			stats: {
 				totalBooks: 0,
@@ -39,84 +34,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				averageRentDays: 0,
 			},
 			timestamp: Date.now(),
+			error: 'Failed to load dashboard data',
 		}
 	}
 }
 
-function StatCard({
-	title,
-	value,
-	description,
-	icon: Icon,
-	isLoading,
-}: {
-	title: string
-	value: number | string
-	description: string
-	icon: typeof BookOpen
-	isLoading?: boolean
-}) {
-	return (
-		<Card>
-			<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-				<CardTitle className='text-sm font-medium'>{title}</CardTitle>
-				<Icon className='h-4 w-4 text-muted-foreground shrink-0' />
-			</CardHeader>
-			<CardContent>
-				{isLoading ? (
-					<>
-						<Skeleton className='h-8 w-20 mb-1' />
-						<Skeleton className='h-4 w-32' />
-					</>
-				) : (
-					<>
-						<div className='text-2xl font-bold'>{value}</div>
-						<p className='text-xs text-muted-foreground'>{description}</p>
-					</>
-				)}
-			</CardContent>
-		</Card>
-	)
-}
-
 export default function LibrarianDashboard() {
-	const { stats, timestamp } = useLoaderData<typeof loader>()
+	const { stats, timestamp, error } = useLoaderData<typeof loader>()
 	const { revalidate } = useRevalidator()
 
 	useEffect(() => {
-		const interval = setInterval(() => {
-			revalidate()
-		}, 30000)
-
+		const interval = setInterval(revalidate, REFRESH_INTERVAL)
 		return () => clearInterval(interval)
 	}, [revalidate])
 
-	const stats_config = [
-		{
-			title: 'Total Books',
-			value: stats.totalBooks,
-			description: 'Books in library',
-			icon: BookOpen,
-		},
-		{
-			title: 'Active Students',
-			value: stats.activeStudents,
-			description: 'Students with borrowed books',
-			icon: Users,
-		},
-		{
-			title: 'Total Rents',
-			value: stats.totalRents,
-			description: 'All time rentals',
-			icon: History,
-		},
-		{
-			title: 'Average Rent Time',
-			value: `${stats.averageRentDays} days`,
-			description: 'Per book',
-			icon: Clock,
-		},
-	]
+	const statsConfig = getLibrarianDashboardConfig(stats)
 
 	return (
 		<div className='space-y-6'>
@@ -127,8 +59,14 @@ export default function LibrarianDashboard() {
 				</p>
 			</div>
 
+			{error && (
+				<div className='bg-destructive/15 text-destructive p-4 rounded-md'>
+					{error}
+				</div>
+			)}
+
 			<div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-				{stats_config.map(stat => (
+				{statsConfig.map((stat: any) => (
 					<StatCard key={stat.title} {...stat} />
 				))}
 			</div>

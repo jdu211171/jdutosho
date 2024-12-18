@@ -1,25 +1,18 @@
-import { useLoaderData, useSearchParams } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { requireLibrarianUser } from '~/services/auth.server'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { BookOpen, CalendarDays, User } from 'lucide-react'
-import { Button } from '~/components/ui/button'
-import { useFetcher } from '@remix-run/react'
-import { toast } from '~/hooks/use-toast'
-import { useEffect } from 'react'
+import { Card, CardContent } from '~/components/ui/card'
+import { BookOpen } from 'lucide-react'
+import { useRentsQuery } from '~/hooks/use-rents-query'
+import type { PendingReturnsResponse } from '~/types/rents'
+import { ReturnRequestCard } from '~/components/return-request-card'
 
-type PendingReturn = {
-	id: number
-	book_code: string
-	status: string
-	book: string
-	taken_by: string
-	taken_by_login_id: string
-	given_by: string
-	given_date: string
-	return_date: string
-	passed_days: number
+type LoaderData = {
+	data: PendingReturnsResponse['data']
+	meta: PendingReturnsResponse['meta']
+	error: string | null
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -29,27 +22,40 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const search = url.searchParams.get('search') || ''
 
 	try {
-		const response = await api.get<{ data: PendingReturn[] }>(
-			'/rents/pending',
-			{
-				params: {
-					page,
-					search,
-				},
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
-		)
-		return {
-			returns: response.data.data,
-			meta: response.data.meta,
-			currentPage: parseInt(page),
-			search,
+		const response = await api.get<PendingReturnsResponse>('/rents/pending', {
+			params: { page, search },
+			headers: {
+				Authorization: `Bearer ${user.token}`,
+			},
+		})
+
+		const meta = response.data.meta || {
+			current_page: 1,
+			last_page: 1,
+			per_page: 10,
+			total: 0,
 		}
+
+		return json<LoaderData>({
+			data: response.data.data,
+			meta,
+			error: null,
+		})
 	} catch (error) {
 		console.error('Error fetching pending returns:', error)
-		return { returns: [], meta: {}, currentPage: 1, search: '' }
+		return json<LoaderData>(
+			{
+				data: [],
+				meta: {
+					current_page: 1,
+					last_page: 1,
+					per_page: 10,
+					total: 0,
+				},
+				error: 'Failed to fetch pending returns',
+			},
+			{ status: 500 }
+		)
 	}
 }
 
@@ -61,22 +67,10 @@ export async function action({ request }: ActionFunctionArgs) {
 	const bookCode = formData.get('bookCode')
 	const action = formData.get('action')
 
-	console.log('Form data:', {
-		rentId,
-		loginId,
-		bookCode,
-		action,
-	})
-
 	try {
 		if (action === 'reject') {
-			return { success: false, message: 'Reject not implemented yet' }
+			return json({ success: false, message: 'Reject not implemented yet' })
 		}
-
-		console.log('Sending request with:', {
-			login_id: loginId,
-			book_code: bookCode,
-		})
 
 		const response = await api.put(
 			`/rents/${rentId}/accept`,
@@ -93,138 +87,30 @@ export async function action({ request }: ActionFunctionArgs) {
 			}
 		)
 
-		if (response.status === 200) {
-			return { success: true }
-		}
-
-		return { success: false }
+		return json({ success: response.status === 200 })
 	} catch (error: any) {
-		console.error('Accept return error:', {
-			data: error.response?.data,
-			status: error.response?.status,
-			formData: {
-				loginId,
-				bookCode,
-			},
-		})
-		return {
+		console.error('Accept return error:', error)
+		return json({
 			success: false,
 			message: error.response?.data?.message || 'Failed to process return',
-		}
+		})
 	}
-}
-
-function ReturnCard({ pendingReturn }: { pendingReturn: PendingReturn }) {
-	const fetcher = useFetcher<{ success: boolean }>()
-	const isAccepting = fetcher.state !== 'idle'
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success === true) {
-			toast({
-				title: 'Return accepted',
-				description: 'The book return has been accepted successfully',
-			})
-		} else if (fetcher.state === 'idle' && fetcher.data?.success === false) {
-			toast({
-				title: 'Failed to accept return',
-				description: 'There was an error accepting the return',
-				variant: 'destructive',
-			})
-		}
-	}, [fetcher.state, fetcher.data?.success])
-
-	return (
-		<Card
-			className={`relative ${pendingReturn.status === 'pending' ? 'border-yellow-500' : ''}`}
-		>
-			<CardHeader>
-				<div className='flex justify-between items-start'>
-					<div>
-						<CardTitle className='text-lg font-bold'>
-							{pendingReturn.book}
-						</CardTitle>
-						<p className='text-sm text-muted-foreground'>
-							Code: {pendingReturn.book_code}
-						</p>
-					</div>
-					<span className='px-2 py-1 shrink-0 absolute right-2 top-2 rounded-full bg-yellow-100 text-yellow-800 text-xs font-medium'>
-						Pending Return
-					</span>
-				</div>
-			</CardHeader>
-			<CardContent className='space-y-3'>
-				<div className='flex items-center space-x-2'>
-					<User className='h-4 w-4 shrink-0 text-muted-foreground' />
-					<span className='text-sm'>Student: {pendingReturn.taken_by}</span>
-				</div>
-				<div className='flex items-center space-x-2'>
-					<CalendarDays className='h-4 w-4 shrink-0 text-muted-foreground' />
-					<span className='text-sm'>
-						Return requested: {pendingReturn.return_date}
-					</span>
-				</div>
-				<div className='flex items-center space-x-2'>
-					<CalendarDays className='h-4 w-4 shrink-0 text-muted-foreground' />
-					<span className='text-sm'>
-						Borrowed on: {pendingReturn.given_date}
-						<span className='ml-1 text-muted-foreground'>
-							({pendingReturn.passed_days} days ago)
-						</span>
-					</span>
-				</div>
-				<fetcher.Form method='post'>
-					<input type='hidden' name='rentId' value={pendingReturn.id} />
-					<input type='hidden' name='loginId' value={pendingReturn.taken_by} />
-					<input
-						type='hidden'
-						name='bookCode'
-						value={pendingReturn.book_code}
-					/>
-					<div className='flex gap-2'>
-						<Button type='submit' className='flex-1' disabled={isAccepting}>
-							Accept Return
-						</Button>
-						<Button
-							type='submit'
-							name='action'
-							value='reject'
-							variant='destructive'
-							className='flex-1'
-							disabled={isAccepting}
-						>
-							Reject
-						</Button>
-					</div>
-				</fetcher.Form>
-			</CardContent>
-		</Card>
-	)
 }
 
 export default function LibrarianRentsPendingPage() {
-	const { returns, meta, currentPage, search } = useLoaderData<typeof loader>()
-	const [, setSearchParams] = useSearchParams()
+	const { data, meta, error } = useLoaderData<typeof loader>()
+	const { currentPage, search, handlePageChange, handleSearch } =
+		useRentsQuery()
 
-	const handlePageChange = (page: number) => {
-		setSearchParams(prev => {
-			prev.set('page', page.toString())
-			return prev
-		})
+	if (error) {
+		return (
+			<div className='p-4 bg-destructive/15 text-destructive rounded-md'>
+				{error}
+			</div>
+		)
 	}
 
-	const handleSearch = (search: string) => {
-		setSearchParams(prev => {
-			if (search) {
-				prev.set('search', search)
-			} else {
-				prev.delete('search')
-			}
-			prev.set('page', '1')
-			return prev
-		})
-	}
-
-	if (returns.length === 0) {
+	if (data.length === 0) {
 		return (
 			<div className='space-y-6'>
 				<h1 className='text-3xl font-bold'>Pending Returns</h1>
@@ -249,20 +135,21 @@ export default function LibrarianRentsPendingPage() {
 						Review and process book return requests from students
 					</p>
 				</div>
-				<div className='flex items-center gap-2'>
-					<input
-						type='text'
-						placeholder='Search returns...'
-						className='px-3 py-1 border rounded-md'
-						value={search}
-						onChange={e => handleSearch(e.target.value)}
-					/>
-				</div>
+				<input
+					type='text'
+					placeholder='Search returns...'
+					className='px-3 py-1 border rounded-md'
+					value={search}
+					onChange={e => handleSearch(e.target.value)}
+				/>
 			</div>
 
 			<div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-				{returns.map(pendingReturn => (
-					<ReturnCard key={pendingReturn.id} pendingReturn={pendingReturn} />
+				{data.map(pendingReturn => (
+					<ReturnRequestCard
+						key={pendingReturn.id}
+						pendingReturn={pendingReturn}
+					/>
 				))}
 			</div>
 

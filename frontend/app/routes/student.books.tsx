@@ -1,82 +1,90 @@
 import type { LoaderFunctionArgs } from '@remix-run/node'
-import { useLoaderData, useSearchParams } from '@remix-run/react'
+import { json } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
 import { studentBookColumns } from '~/components/book-table/columns'
 import { DataTable } from '~/components/book-table/data-table'
+import { useBooksQuery } from '~/hooks/use-books-query'
 import { api } from '~/lib/api'
 import { requireStudentUser } from '~/services/auth.server'
+import type { BooksResponse, BooksPaginationMeta } from '~/types/books'
 
-type StudentBooksLoaderData = {
-	data: any[]
-	meta: any
-	currentPage: number
-	search: string
+type LoaderData = {
+	data: BooksResponse['data']
+	meta: BooksPaginationMeta
+	error: string | null
 }
 
-export async function loader({
-	request,
-}: LoaderFunctionArgs): Promise<StudentBooksLoaderData> {
+export async function loader({ request }: LoaderFunctionArgs) {
 	const user = await requireStudentUser(request)
 	const url = new URL(request.url)
 	const page = url.searchParams.get('page') || '1'
 	const search = url.searchParams.get('search') || ''
 
 	try {
-		const token = user.token
-
-		const response = await api.get<StudentBooksLoaderData>('/student/books', {
-			params: {
-				page,
-				search,
-			},
+		const response = await api.get<BooksResponse>('/student/books', {
+			params: { page, search },
 			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
+				Authorization: `Bearer ${user.token}`,
 			},
 		})
 
-		if (response.status !== 200) {
-			throw new Error('Failed to fetch books')
+		const meta = response.data.meta || {
+			current_page: 1,
+			last_page: 1,
+			per_page: 10,
+			total: 0,
 		}
-		return { ...response.data }
+
+		return json<LoaderData>({
+			data: response.data.data,
+			meta,
+			error: null,
+		})
 	} catch (error) {
 		console.error('Error fetching books:', error)
-		return { data: [], meta: {}, currentPage: 1, search: '' }
+		return json<LoaderData>(
+			{
+				data: [],
+				meta: {
+					current_page: 1,
+					last_page: 1,
+					per_page: 10,
+					total: 0,
+				},
+				error: 'Failed to fetch books',
+			},
+			{ status: 500 }
+		)
 	}
 }
 
 export default function StudentBooksPage() {
-	const { data, meta } = useLoaderData<typeof loader>()
-	const [searchParams, setSearchParams] = useSearchParams()
-	const pageCount = meta?.last_page || 1
-	const currentPage = Number(searchParams.get('page')) || 1
-	const initialSearch = searchParams.get('search') || ''
+	const { data, meta, error } = useLoaderData<typeof loader>()
+	const { currentPage, search, handlePageChange, handleSearch } =
+		useBooksQuery()
 
-	const handlePageChange = (page: number) => {
-		setSearchParams(prev => {
-			prev.set('page', page.toString())
-			return prev
-		})
-	}
-
-	const handleSearch = (search: string) => {
-		setSearchParams(prev => {
-			if (search) {
-				prev.set('search', search)
-			}
-			return prev
-		})
+	if (error) {
+		return (
+			<div className='p-4 bg-destructive/15 text-destructive rounded-md'>
+				{error}
+			</div>
+		)
 	}
 
 	return (
-		<div>
+		<div className='space-y-4'>
+			<div className='flex justify-between items-center'>
+				<h2 className='text-3xl font-bold tracking-tight'>Books</h2>
+			</div>
+
 			<DataTable
 				columns={studentBookColumns}
 				data={data}
-				pageCount={pageCount}
+				pageCount={meta.last_page}
 				currentPage={currentPage}
 				onPageChange={handlePageChange}
 				onSearch={handleSearch}
-				initialSearch={initialSearch}
+				initialSearch={search}
 			/>
 		</div>
 	)
