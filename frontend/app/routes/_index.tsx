@@ -7,7 +7,7 @@ import {
 	CardTitle,
 } from '~/components/ui/card'
 import { NavLink } from '@remix-run/react'
-import { ThemeToggle } from '~/components/theme-toggle'
+import { ModeToggle } from '~/components/mode-toggle'
 
 export default function Index() {
 	return (
@@ -22,7 +22,7 @@ export default function Index() {
 					</div>
 					<div className='flex flex-1 items-center justify-end space-x-4'>
 						<nav className='flex items-center space-x-4'>
-							<ThemeToggle />
+							<ModeToggle />
 							<Button asChild variant='ghost'>
 								<NavLink to='/student'>Student Portal</NavLink>
 							</Button>
