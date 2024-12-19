@@ -1,5 +1,5 @@
 import { useLoaderData } from '@remix-run/react'
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { requireLibrarianUser } from '~/services/auth.server'
@@ -63,29 +63,13 @@ export async function action({ request }: ActionFunctionArgs) {
 	const user = await requireLibrarianUser(request)
 	const formData = await request.formData()
 	const rentId = formData.get('rentId')
-	const loginId = formData.get('loginId')
-	const bookCode = formData.get('bookCode')
-	const action = formData.get('action')
 
 	try {
-		if (action === 'reject') {
-			return json({ success: false, message: 'Reject not implemented yet' })
-		}
-
-		const response = await api.put(
-			`/rents/${rentId}/accept`,
-			{
-				login_id: loginId,
-				book_code: bookCode,
+		const response = await api.put(`/rents/${rentId}/accept`, null, {
+			headers: {
+				Authorization: `Bearer ${user.token}`,
 			},
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-					'Content-Type': 'application/json',
-					Accept: 'application/json',
-				},
-			}
-		)
+		})
 
 		return json({ success: response.status === 200 })
 	} catch (error: any) {

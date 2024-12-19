@@ -1,9 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { BookOpen, CalendarDays, User } from 'lucide-react'
-import { useFetcher } from '@remix-run/react'
-import { toast } from '~/hooks/use-toast'
 import { useEffect } from 'react'
-import type { RentBook } from '~/types/rents'
+import { useFetcher } from 'react-router-dom'
+import { BookOpen, CalendarDays, User } from 'lucide-react'
+import { toast } from '~/hooks/use-toast'
+import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { RentBook } from '~/types/rents'
 
 export function BorrowedBookCard({ book }: { book: RentBook }) {
 	const fetcher = useFetcher<{ success: boolean }>()
@@ -25,7 +26,7 @@ export function BorrowedBookCard({ book }: { book: RentBook }) {
 	}, [fetcher.state, fetcher.data?.success])
 
 	return (
-		<Card>
+		<Card key={book.id}>
 			<CardHeader>
 				<CardTitle className='text-lg font-bold'>{book.book}</CardTitle>
 				<p className='text-sm text-muted-foreground'>Code: {book.book_code}</p>
@@ -47,13 +48,17 @@ export function BorrowedBookCard({ book }: { book: RentBook }) {
 				</div>
 				<fetcher.Form method='post'>
 					<input type='hidden' name='bookId' value={book.id} />
-					<button
+					<Button
 						type='submit'
-						disabled={isReturning}
-						className='w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md'
+						disabled={isReturning || book.status === 'pending'}
+						className='w-full mt-4'
 					>
-						{isReturning ? 'Returning...' : 'Return Book'}
-					</button>
+						{isReturning
+							? 'Returning...'
+							: book.status === 'pending'
+								? 'Pending'
+								: 'Return Book'}
+					</Button>
 				</fetcher.Form>
 			</CardContent>
 		</Card>

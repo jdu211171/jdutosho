@@ -85,42 +85,21 @@ class RentController extends Controller
 
         return RentResource::collection($rents);
     }
-    public function accept(AcceptRentRequest $request)
+    public function accept($id)
     {
-        $validated = $request->validated();
-
-        // Find the student
-        $student = User::where('loginID', $validated['login_id'])->firstOrFail();
-        if ($student->role !== 'student') {
-            return response()->json(['message' => 'Invalid student ID'], 400);
-        }
-
-        // Find the book
-        $bookCode = BookCode::where('code', $validated['book_code'])->firstOrFail();
-
-        // Find the rent record
-        $rent = RentBook::where([
-            'book_code_id' => $bookCode->id,
-            'taken_by' => $student->id,
-        ])
-            ->whereNull('return_date')
-            ->first();
+        $rent = RentBook::find($id);
 
         if (!$rent) {
-            return response()->json(['message' => 'No pending return found for this book and student'], 404);
+            return response()->json(['message' => 'Rent not found'], 404);
         }
 
         if ($rent->bookCode->status !== 'pending') {
-            return response()->json(['message' => 'This book is not pending return'], 400);
+            return response()->json(['message' => 'This book can\'t be accepted'], 400);
         }
+        $rent->bookCode->status = 'exist';
+        $rent->bookCode->save();
 
-        // Update book status
-        $bookCode->status = 'exist';
-        $bookCode->save();
-
-        // Update rent record
         $rent->return_date = now();
-        $rent->accepted_by = auth()->user()->id;
         $rent->save();
 
         return new RentResource($rent);
