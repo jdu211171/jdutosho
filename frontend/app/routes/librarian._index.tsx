@@ -18,8 +18,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			{
 				headers: {
 					Authorization: `Bearer ${user.token}`,
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
 				},
 			}
 		)

@@ -47,8 +47,6 @@ export async function action({ request }: ActionFunctionArgs) {
 		const response = await api.put(`/student/${bookId}/return`, null, {
 			headers: {
 				Authorization: `Bearer ${user.token}`,
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
 			},
 		})
 
