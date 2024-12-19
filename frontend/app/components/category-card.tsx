@@ -7,7 +7,7 @@ import { useEffect } from 'react'
 import type { Category } from '~/types/categories'
 
 export function CategoryCard({ category }: { category: Category }) {
-	const fetcher = useFetcher()
+	const fetcher = useFetcher<{ success: boolean; error: string }>()
 	const isDeleting = fetcher.state !== 'idle'
 
 	useEffect(() => {
@@ -49,11 +49,6 @@ export function CategoryCard({ category }: { category: Category }) {
 					</fetcher.Form>
 				</div>
 			</CardHeader>
-			<CardContent>
-				<p className='text-sm text-muted-foreground'>
-					Created at: {new Date(category.created_at).toLocaleDateString()}
-				</p>
-			</CardContent>
 		</Card>
 	)
 }
