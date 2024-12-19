@@ -15,30 +15,9 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '~/components/ui/dialog'
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
-import { cn } from '~/lib/utils'
-
-interface Book {
-	id: string
-	code: string
-}
-
-interface Student {
-	id: string
-	loginID: string
-}
-
-interface ApiResponse<T> {
-	data: T[]
-}
+import { Form } from '~/components/ui/form'
+import { SearchField } from './lend-book/search-field'
+import type { ApiResponse, Book, Student } from '~/types/lend-book'
 
 const lendingSchema = z.object({
 	bookId: z.string().min(1, 'Book ID is required'),
@@ -61,32 +40,33 @@ export function LendBookDialog({
 	const [studentSearch, setStudentSearch] = useState('')
 	const [selectedBookIndex, setSelectedBookIndex] = useState(-1)
 	const [selectedStudentIndex, setSelectedStudentIndex] = useState(-1)
-	const [, setActiveField] = useState<'book' | 'student' | null>(null)
+	const [activeField, setActiveField] = useState<'book' | 'student' | null>(
+		null
+	)
 
-	const { debounce } = _
 	const bookSearchFetcher = useFetcher<ApiResponse<Book>>()
 	const studentSearchFetcher = useFetcher<ApiResponse<Student>>()
 
 	const debouncedSetBookSearch = useMemo(
 		() =>
-			debounce((value: string) => {
+			_.debounce((value: string) => {
 				setBookSearch(value)
 				if (value) {
 					bookSearchFetcher.load(`/librarian/books/search?q=${value}`)
 				}
 			}, 300),
-		[bookSearchFetcher, debounce]
+		[bookSearchFetcher]
 	)
 
 	const debouncedSetStudentSearch = useMemo(
 		() =>
-			debounce((value: string) => {
+			_.debounce((value: string) => {
 				setStudentSearch(value)
 				if (value) {
 					studentSearchFetcher.load(`/librarian/students/search?q=${value}`)
 				}
 			}, 300),
-		[debounce, studentSearchFetcher]
+		[studentSearchFetcher]
 	)
 
 	const form = useForm<LendingFormData>({
@@ -155,54 +135,6 @@ export function LendBookDialog({
 		setOpen(false)
 	}
 
-	const SearchResults = ({
-		type,
-		data,
-		isLoading,
-		selectedIndex,
-		onSelect,
-	}: {
-		type: 'book' | 'student'
-		data?: ApiResponse<Book | Student>
-		isLoading: boolean
-		selectedIndex: number
-		onSelect: (value: string) => void
-	}) => {
-		if (isLoading) {
-			return <div className='p-2 text-foreground'>Loading...</div>
-		}
-
-		if (!data?.data.length) {
-			return <div className='p-2 text-foreground'>No results found</div>
-		}
-
-		return data.data.map((item, index) => {
-			const value =
-				type === 'book' ? (item as Book).code : (item as Student).loginID
-			return (
-				<div
-					key={item.id}
-					className={cn(
-						'cursor-pointer px-4 py-2 hover:bg-accent/50 transition-colors',
-						index === selectedIndex && 'bg-accent text-accent-foreground',
-						form.getValues(type === 'book' ? 'bookId' : 'studentId') ===
-							value && 'font-medium'
-					)}
-					role='button'
-					tabIndex={0}
-					onClick={() => onSelect(value)}
-					onKeyDown={e => {
-						if (e.key === 'Enter' || e.key === ' ') {
-							onSelect(value)
-						}
-					}}
-				>
-					{value}
-				</div>
-			)
-		})
-	}
-
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>{children}</DialogTrigger>
@@ -219,103 +151,52 @@ export function LendBookDialog({
 						onSubmit={e => void form.handleSubmit(onSubmit)(e)}
 						className='space-y-4'
 					>
-						<FormField
-							control={form.control}
+						<SearchField
+							form={form}
 							name='studentId'
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Student ID</FormLabel>
-									<FormControl>
-										<div className='relative'>
-											<Input
-												placeholder='Search Student ID...'
-												onChange={e => {
-													debouncedSetStudentSearch(e.target.value)
-													field.onChange(e.target.value)
-												}}
-												onFocus={() => setActiveField('student')}
-												onKeyDown={e =>
-													handleKeyNavigation(
-														e,
-														studentSearchFetcher.data?.data,
-														setSelectedStudentIndex,
-														selectedStudentIndex,
-														'student'
-													)
-												}
-												autoComplete='off'
-												value={field.value}
-											/>
-											{studentSearch && (
-												<div className='absolute z-10 mt-1 w-full bg-background border rounded-md shadow-md max-h-60 overflow-y-auto'>
-													<SearchResults
-														type='student'
-														data={
-															studentSearchFetcher.data as ApiResponse<Student>
-														}
-														isLoading={studentSearchFetcher.state === 'loading'}
-														selectedIndex={selectedStudentIndex}
-														onSelect={value => {
-															form.setValue('studentId', value)
-															setStudentSearch('')
-														}}
-													/>
-												</div>
-											)}
-										</div>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
+							label='Student ID'
+							placeholder='Search Student ID...'
+							onSearch={debouncedSetStudentSearch}
+							searchValue={studentSearch}
+							searchResults={studentSearchFetcher.data}
+							isLoading={studentSearchFetcher.state === 'loading'}
+							selectedIndex={selectedStudentIndex}
+							onKeyNavigation={e =>
+								handleKeyNavigation(
+									e,
+									studentSearchFetcher.data?.data,
+									setSelectedStudentIndex,
+									selectedStudentIndex,
+									'student'
+								)
+							}
+							onSelect={setStudentSearch}
+							onFocus={() => setActiveField('student')}
 						/>
 
-						<FormField
-							control={form.control}
+						<SearchField
+							form={form}
 							name='bookId'
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Book ID</FormLabel>
-									<FormControl>
-										<div className='relative'>
-											<Input
-												placeholder='Search Book ID...'
-												onChange={e => {
-													debouncedSetBookSearch(e.target.value)
-													field.onChange(e.target.value)
-												}}
-												onFocus={() => setActiveField('book')}
-												onKeyDown={e =>
-													handleKeyNavigation(
-														e,
-														bookSearchFetcher.data?.data,
-														setSelectedBookIndex,
-														selectedBookIndex,
-														'book'
-													)
-												}
-												autoComplete='off'
-												value={field.value}
-											/>
-											{bookSearch && (
-												<div className='absolute z-10 mt-1 w-full bg-background border rounded-md shadow-md max-h-60 overflow-y-auto'>
-													<SearchResults
-														type='book'
-														data={bookSearchFetcher.data}
-														isLoading={bookSearchFetcher.state === 'loading'}
-														selectedIndex={selectedBookIndex}
-														onSelect={value => {
-															form.setValue('bookId', value)
-															setBookSearch('')
-														}}
-													/>
-												</div>
-											)}
-										</div>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
+							label='Book ID'
+							placeholder='Search Book ID...'
+							onSearch={debouncedSetBookSearch}
+							searchValue={bookSearch}
+							searchResults={bookSearchFetcher.data}
+							isLoading={bookSearchFetcher.state === 'loading'}
+							selectedIndex={selectedBookIndex}
+							onKeyNavigation={e =>
+								handleKeyNavigation(
+									e,
+									bookSearchFetcher.data?.data,
+									setSelectedBookIndex,
+									selectedBookIndex,
+									'book'
+								)
+							}
+							onSelect={setBookSearch}
+							onFocus={() => setActiveField('book')}
 						/>
+
 						<DialogFooter>
 							<Button
 								type='submit'

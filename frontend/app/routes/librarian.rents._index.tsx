@@ -4,14 +4,10 @@ import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
 import { requireLibrarianUser } from '~/services/auth.server'
 import { useRentsQuery } from '~/hooks/use-rents-query'
-import type { RentBook, RentsResponse } from '~/types/rents'
 import { RentCard } from '~/components/rent-card'
-
-type LoaderData = {
-	data: RentBook[]
-	meta: RentsResponse['meta']
-	error: string | null
-}
+import { Input } from '~/components/ui/input'
+import { RentsResponseSchema } from '~/types/rents'
+import { Button } from '~/components/ui/button'
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const user = await requireLibrarianUser(request)
@@ -20,28 +16,29 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const search = url.searchParams.get('search') || ''
 
 	try {
-		const response = await api.get<RentsResponse>('/rents', {
+		const response = await api.get('/rents', {
 			params: { page, search },
 			headers: {
 				Authorization: `Bearer ${user.token}`,
 			},
 		})
 
-		const meta = response.data.meta || {
-			current_page: 1,
-			last_page: 1,
-			per_page: 10,
-			total: 0,
+		// Validate response data
+		const result = RentsResponseSchema.safeParse(response.data)
+
+		if (!result.success) {
+			console.error('Invalid response data:', result.error)
+			throw new Error('Invalid response data')
 		}
 
-		return json<LoaderData>({
-			data: response.data.data,
-			meta,
+		return json({
+			data: result.data.data,
+			meta: result.data.meta,
 			error: null,
 		})
 	} catch (error) {
 		console.error('Error fetching rents:', error)
-		return json<LoaderData>(
+		return json(
 			{
 				data: [],
 				meta: {
@@ -73,26 +70,27 @@ export default function LibrarianRentsPage() {
 	return (
 		<div className='space-y-6'>
 			<div className='flex justify-between items-center'>
-				<h1 className='text-3xl font-bold'>All Rentals</h1>
-				<input
+				<div>
+					<h1 className='text-3xl font-bold'>All Rentals</h1>
+					<p className='text-muted-foreground'>View and manage book rentals</p>
+				</div>
+				<Input
 					type='text'
 					placeholder='Search rentals...'
-					className='px-3 py-1 border rounded-md'
+					className='max-w-xs'
 					value={search}
 					onChange={e => handleSearch(e.target.value)}
 				/>
 			</div>
 
 			<div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-				{data.map(rent => (
-					<RentCard key={rent.id} rent={rent} />
-				))}
+				{data?.map((rent: any) => <RentCard key={rent.id} rent={rent} />)}
 			</div>
 
 			{meta.last_page > 1 && (
 				<div className='flex justify-center gap-2 mt-4'>
 					{Array.from({ length: meta.last_page }, (_, i) => (
-						<button
+						<Button
 							key={i + 1}
 							onClick={() => handlePageChange(i + 1)}
 							className={`px-3 py-1 rounded ${
@@ -102,7 +100,7 @@ export default function LibrarianRentsPage() {
 							}`}
 						>
 							{i + 1}
-						</button>
+						</Button>
 					))}
 				</div>
 			)}

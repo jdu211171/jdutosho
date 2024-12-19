@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 export type RentBook = {
 	id: number
 	book_code: string
@@ -16,10 +18,27 @@ export type RentsPaginationMeta = {
 	total: number
 }
 
-export type RentsResponse = {
-	data: RentBook[]
-	meta: RentsPaginationMeta
-}
+// Only use Zod for API response validation
+export const RentsResponseSchema = z.object({
+	data: z.array(z.object({
+		id: z.number(),
+		book_code: z.string(),
+		status: z.string(),
+		book: z.string(),
+		taken_by: z.string(),
+		given_by: z.string(),
+		given_date: z.string(),
+		passed_days: z.number()
+	}).nullable().transform(val => val || null)),
+	meta: z.object({
+		current_page: z.number(),
+		last_page: z.number(),
+		per_page: z.number(),
+		total: z.number()
+	})
+})
+
+export type RentsResponse = z.infer<typeof RentsResponseSchema>
 
 export type PendingReturn = {
 	id: number

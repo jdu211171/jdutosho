@@ -36,6 +36,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			total: 0,
 		}
 
+		console.log(response.data.data)
+
 		return json<LoaderData>({
 			data: response.data.data,
 			meta,

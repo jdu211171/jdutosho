@@ -17,6 +17,14 @@ interface RouteMapItem {
 
 const routeMap: Record<string, RouteMapItem> = {
 	'routes/librarian': { title: 'Librarian', path: '/librarian' },
+	'routes/librarian.users.userId.edit': {
+		title: 'Edit Student',
+		path: '/librarian/users/userId/edit',
+	},
+	'routes/librarian.book-categories.categoryId.edit': {
+		title: 'Edit Category',
+		path: '/librarian/book-categories/categoryId/edit',
+	},
 	'routes/student': { title: 'Student', path: '/student' },
 	...navConfig.librarian.reduce(
 		(acc, section) => ({
