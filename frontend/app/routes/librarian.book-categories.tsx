@@ -1,7 +1,4 @@
-export default function LibrarianBookCategoriesPage() {
-	return (
-		<div>
-			<h1 className='text-3xl font-bold'>Book Categories</h1>
-		</div>
-	)
+import { Outlet } from '@remix-run/react'
+export function LibrarianBookLayout() {
+	return <Outlet />
 }

@@ -8,20 +8,53 @@ import {
 } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
-import { useActionData, useNavigate } from '@remix-run/react'
+import { useActionData, useLoaderData, useNavigate } from '@remix-run/react'
 import { api } from '~/lib/api'
 import { requireLibrarianUser } from '~/services/auth.server'
-import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
+import {
+	json,
+	redirect,
+	type ActionFunctionArgs,
+	type LoaderFunctionArgs,
+} from '@remix-run/node'
 import { toast } from '~/hooks/use-toast'
+import type { Category } from '~/types/categories'
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
+	const user = await requireLibrarianUser(request)
+	const categoryId = params.categoryId
+
+	try {
+		const response = await api.get<{ data: Category }>(
+			`/book-categories/${categoryId}`,
+			{
+				headers: {
+					Authorization: `Bearer ${user.token}`,
+				},
+			}
+		)
+
+		return json({ category: response.data.data })
+	} catch (error: any) {
+		console.error('Error fetching category:', error)
+		throw json(
+			{
+				error: error.response?.data?.message || 'Failed to fetch category',
+			},
+			{ status: 404 }
+		)
+	}
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
 	const user = await requireLibrarianUser(request)
 	const formData = await request.formData()
 	const name = formData.get('name')
+	const categoryId = params.categoryId
 
 	try {
-		await api.post(
-			'/book-categories',
+		await api.put(
+			`/book-categories/${categoryId}`,
 			{ name },
 			{
 				headers: {
@@ -32,17 +65,18 @@ export async function action({ request }: ActionFunctionArgs) {
 
 		return redirect('/librarian/book-categories')
 	} catch (error: any) {
-		console.error('Create category error:', error)
+		console.error('Update category error:', error)
 		return json(
 			{
-				error: error.response?.data?.message || 'Failed to create category',
+				error: error.response?.data?.message || 'Failed to update category',
 			},
 			{ status: 400 }
 		)
 	}
 }
 
-export default function NewBookCategoryPage() {
+export default function EditBookCategoryPage() {
+	const { category } = useLoaderData<typeof loader>()
 	const actionData = useActionData<typeof action>()
 	const navigate = useNavigate()
 
@@ -58,8 +92,8 @@ export default function NewBookCategoryPage() {
 		<div className='mx-auto max-w-lg'>
 			<Card>
 				<CardHeader>
-					<CardTitle>New Book Category</CardTitle>
-					<CardDescription>Create a new book category</CardDescription>
+					<CardTitle>Edit Book Category</CardTitle>
+					<CardDescription>Update category details</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form method='post' className='space-y-4'>
@@ -68,6 +102,7 @@ export default function NewBookCategoryPage() {
 							<Input
 								id='name'
 								name='name'
+								defaultValue={category.name}
 								placeholder='Enter category name'
 								required
 							/>
@@ -80,7 +115,7 @@ export default function NewBookCategoryPage() {
 							>
 								Cancel
 							</Button>
-							<Button type='submit'>Create Category</Button>
+							<Button type='submit'>Update Category</Button>
 						</div>
 					</form>
 				</CardContent>
