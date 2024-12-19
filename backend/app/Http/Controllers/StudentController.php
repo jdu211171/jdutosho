@@ -64,7 +64,7 @@ class StudentController extends Controller
 
     public function returnBook($id)
     {
-        $rent = RentBook::find($id)
+        $rent = RentBook::where('id', $id)
             ->where('taken_by', auth()->user()->id)
             ->whereNull('return_date')
             ->first();
@@ -78,7 +78,6 @@ class StudentController extends Controller
 
         return new RentResource($rent);
     }
-
     public function bookList(Request $request)
     {
         $search = $request->input('search');

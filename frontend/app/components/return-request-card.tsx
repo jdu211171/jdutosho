@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { BookOpen, CalendarDays, User } from 'lucide-react'
+import { CalendarDays, User } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { useFetcher } from '@remix-run/react'
 import { toast } from '~/hooks/use-toast'
@@ -43,9 +43,6 @@ export function ReturnRequestCard({
 							Code: {pendingReturn.book_code}
 						</p>
 					</div>
-					<span className='px-2 py-1 shrink-0 absolute right-2 top-2 rounded-full bg-yellow-100 text-yellow-800 text-xs font-medium'>
-						Pending Return
-					</span>
 				</div>
 			</CardHeader>
 			<CardContent className='space-y-3'>
@@ -68,31 +65,11 @@ export function ReturnRequestCard({
 						</span>
 					</span>
 				</div>
-				<fetcher.Form method='post'>
+				<fetcher.Form method='put'>
 					<input type='hidden' name='rentId' value={pendingReturn.id} />
-					<input
-						type='hidden'
-						name='loginId'
-						value={pendingReturn.taken_by_login_id}
-					/>
-					<input
-						type='hidden'
-						name='bookCode'
-						value={pendingReturn.book_code}
-					/>
 					<div className='flex gap-2'>
 						<Button type='submit' className='flex-1' disabled={isAccepting}>
 							Accept Return
-						</Button>
-						<Button
-							type='submit'
-							name='action'
-							value='reject'
-							variant='destructive'
-							className='flex-1'
-							disabled={isAccepting}
-						>
-							Reject
 						</Button>
 					</div>
 				</fetcher.Form>
