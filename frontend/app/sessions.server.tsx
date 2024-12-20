@@ -8,12 +8,12 @@ const sessionStorage = createCookieSessionStorage({
 	cookie: {
 		name: 'theme',
 		path: '/',
-		httpOnly: true,
+		httpOnly: false,
 		sameSite: 'lax',
 		secrets: ['s3cr3t'],
 		// Set domain and secure only if in production
 		...(isProduction
-			? { domain: 'your-production-domain.com', secure: true }
+			? { domain: 'jdutosho.uz', secure: true }
 			: {}),
 	},
 })

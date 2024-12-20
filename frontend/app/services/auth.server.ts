@@ -3,19 +3,22 @@ import type { SessionData, SessionFlashData, User } from '~/types/auth'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
+if (!process.env.SESSION_SECRET) {
+	throw new Error('SESSION_SECRET must be set')
+}
+
 const authSessionStorage = createCookieSessionStorage<
 	SessionData,
 	SessionFlashData
 >({
 	cookie: {
 		name: 'auth_session',
-		httpOnly: false,
+		httpOnly: true,
 		maxAge: 60 * 60 * 24 * 30,
 		path: '/',
 		sameSite: 'lax',
-		secrets: [process.env.SESSION_SECRET!],
+		secrets: [process.env.SESSION_SECRET],
 		secure: isProduction,
-		...(isProduction ? { domain: 'jdutosho.uz' } : {}),
 	},
 })
 
