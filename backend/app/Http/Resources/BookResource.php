@@ -18,6 +18,7 @@ class BookResource extends BaseResource
             'name' => $this->name,
             'author' => $this->author,
             'language' => $this->language,
+            'category_id' => $this->category_id,
             'category' => $this->category->name,
         ];
 

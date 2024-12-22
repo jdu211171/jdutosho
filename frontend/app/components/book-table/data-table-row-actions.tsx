@@ -8,6 +8,7 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { LendBookDialog } from '~/components/lend-book-dialog'
+import { Link } from '@remix-run/react'
 
 export function DataTableRowActions({ row }: { row: any }) {
 	return (
@@ -22,7 +23,9 @@ export function DataTableRowActions({ row }: { row: any }) {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align='end' className='w-[160px]'>
-				<DropdownMenuItem>Edit</DropdownMenuItem>
+				<Link to={`/librarian/books/${row.original.id}/edit`}>
+					<DropdownMenuItem>Edit</DropdownMenuItem>
+				</Link>
 				{row.original.status !== 'rent' && row.original.status !== 'lost' && (
 					<LendBookDialog initialBookId={row.original.code}>
 						<DropdownMenuItem onSelect={e => e.preventDefault()}>
@@ -33,7 +36,6 @@ export function DataTableRowActions({ row }: { row: any }) {
 				{(row.original.status === 'rent' || row.original.status === 'lost') && (
 					<DropdownMenuItem disabled>Lend</DropdownMenuItem>
 				)}
-				<DropdownMenuItem>Favorite</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem>Delete</DropdownMenuItem>
 			</DropdownMenuContent>

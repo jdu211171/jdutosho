@@ -25,3 +25,30 @@ export type BooksResponse = {
 	data: Book[]
 	meta: BooksPaginationMeta
 }
+
+export interface BookCode {
+  id: number
+  code: string
+  status: string
+}
+
+export interface Category {
+  id: number
+  name: string
+}
+
+export interface BookFormFieldErrors {
+  name?: string
+  author?: string
+  language?: string
+  category?: string
+  codes?: string
+}
+
+export interface BookFormValues {
+  name?: string
+  author?: string
+  language?: string
+  category?: string
+  codes?: string[]
+}

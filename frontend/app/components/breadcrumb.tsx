@@ -21,6 +21,11 @@ const routeMap: Record<string, RouteMapItem> = {
 		title: 'Edit Student',
 		path: '/librarian/users/userId/edit',
 	},
+	'routes/librarian.books.new': { title: 'New Book', path: '/librarian/books/new' },
+	'routes/librarian.books.id.edit': {
+		title: 'Edit Book',
+		path: '/librarian/books/bookId/edit',
+	},
 	'routes/librarian.book-categories.categoryId.edit': {
 		title: 'Edit Category',
 		path: '/librarian/book-categories/categoryId/edit',

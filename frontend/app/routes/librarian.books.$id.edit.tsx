@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs } from "@remix-run/node"
+import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node"
 import { json, redirect, useActionData, useLoaderData, useNavigate, useNavigation } from "@remix-run/react"
 import { toast } from "~/hooks/use-toast"
 import { api } from "~/lib/api"
@@ -13,30 +13,48 @@ type ActionData = {
 }
 
 type LoaderData = {
+  book: {
+    id: number
+    name: string
+    author: string
+    language: string
+    category_id: number
+    category: string
+    codes: Array<{
+      id: number
+      code: string
+      status: string
+    }>
+  }
   categories: Category[]
 }
 
-export async function loader({ request }: ActionFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const user = await requireLibrarianUser(request)
 
   try {
-    const response = await api.get('/book-categories/list', {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    })
+    const [bookResponse, categoriesResponse] = await Promise.all([
+      api.get(`/books/${params.id}`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      }),
+      api.get('/book-categories/list', {
+        headers: { Authorization: `Bearer ${user.token}` },
+      })
+    ])
 
     return json<LoaderData>({
-      categories: response.data.data,
+      book: bookResponse.data.data,
+      categories: categoriesResponse.data.data,
     })
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Failed to load categories')
+    throw new Error(error.response?.data?.message || 'Failed to load book data')
   }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const user = await requireLibrarianUser(request)
   const formData = await request.formData()
+
   const name = formData.get('name')
   const author = formData.get('author')
   const language = formData.get('language')
@@ -64,13 +82,26 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const response = await api.post(
-      '/books',
+    // Update book details
+    await api.put(
+      `/books/${params.id}`,
       {
         name,
         author,
         language,
         category,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      }
+    )
+
+    // Update book codes
+    await api.put(
+      `/books/${params.id}/code`,
+      {
         codes: Array.from(codes),
       },
       {
@@ -80,12 +111,11 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     )
 
-    console.log(response.data)
-
     return redirect('/librarian/books')
   } catch (error: any) {
-    console.error('Create book error:', error)
+    console.error('Update book error:', error)
     const message = error.response?.data?.message
+
     if (message?.includes('codes')) {
       return json<ActionData>(
         {
@@ -96,13 +126,19 @@ export async function action({ request }: ActionFunctionArgs) {
         { status: 400 }
       )
     }
-    return json<ActionData>({ error: message || 'Failed to create book' }, { status: 400 })
+
+    return json<ActionData>(
+      {
+        error: message || 'Failed to update book',
+      },
+      { status: 400 }
+    )
   }
 }
 
-export default function LibrarianBooksNewPage() {
+export default function EditBookPage() {
   const actionData = useActionData<ActionData>()
-  const { categories } = useLoaderData<LoaderData>()
+  const { book, categories } = useLoaderData<LoaderData>()
   const navigate = useNavigate()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
@@ -115,11 +151,24 @@ export default function LibrarianBooksNewPage() {
     })
   }
 
+  const categoryId = categories.find(
+    cat => cat.name === book.category
+  )?.id.toString() || ''
+
+  const formValues = {
+    name: book.name,
+    author: book.author,
+    language: book.language,
+    category: book.category_id.toString(),
+    codes: book.codes.map(code => code.code)
+  }
+
   return (
     <div className='mx-auto max-w-lg'>
       <BookForm
+        initialValues={formValues}
         categories={categories}
-        onSubmit={() => {}} // Empty function since form handles submission
+        onSubmit={() => {}}
         actionData={actionData}
         isSubmitting={isSubmitting}
       />
