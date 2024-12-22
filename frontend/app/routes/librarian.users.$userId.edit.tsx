@@ -32,6 +32,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '~/components/ui/select'
+import { update } from 'lodash'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const user = await requireLibrarianUser(request)
@@ -73,7 +74,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	const name = formData.get('name')
 	const loginID = formData.get('loginID')
-	const password = formData.get('password')?.toString() || ''
+	const password = formData.get('password')?.toString()
 	const role = formData.get('role')
 	const userId = params.userId
 
@@ -90,11 +91,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	}
 
 	try {
-		const updateData = {
+		const updateData: Record<string, any> = {
 			name,
 			loginID,
 			role,
-			...(password ? { password } : {}),
+		}
+
+		if (password && password.trim() !== '') {
+			updateData.password = password
 		}
 
 		await api.put(`/users/${userId}`, updateData, {
@@ -153,91 +157,91 @@ export default function EditUserPage() {
 
 	return (
 		<div className='mx-auto max-w-lg'>
-			<Card>
-				<CardHeader>
-					<CardTitle>Edit User</CardTitle>
-					<CardDescription>Update user account details</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<fetcher.Form method='post' className='space-y-4'>
-						<div className='space-y-2'>
-							<Label htmlFor='name'>Full Name</Label>
-							<Input
-								id='name'
-								name='name'
-								defaultValue={user.name}
-								placeholder='Enter student name'
-								required
-							/>
-							{actionData?.fieldErrors?.name && (
-								<p className='text-sm text-destructive'>
-									{actionData.fieldErrors.name}
-								</p>
-							)}
-						</div>
+      <Card>
+          <CardHeader>
+              <CardTitle>Edit User</CardTitle>
+              <CardDescription>Update user account details</CardDescription>
+          </CardHeader>
+          <CardContent>
+              <fetcher.Form method='post' className='space-y-4'>
+                  <div className='space-y-2'>
+                      <Label htmlFor='name'>Full Name</Label>
+                      <Input
+                          id='name'
+                          name='name'
+                          defaultValue={user.name}
+                          placeholder='Enter student name'
+                          required
+                      />
+                      {actionData?.fieldErrors?.name && (
+                          <p className='text-sm text-destructive'>
+                              {actionData.fieldErrors.name}
+                          </p>
+                      )}
+                  </div>
 
-						<div className='space-y-2'>
-							<Label htmlFor='loginID'>Login ID</Label>
-							<Input
-								id='loginID'
-								name='loginID'
-								defaultValue={user.loginID}
-								placeholder='Enter login ID'
-								required
-							/>
-							{actionData?.fieldErrors?.loginID && (
-								<p className='text-sm text-destructive'>
-									{actionData.fieldErrors.loginID}
-								</p>
-							)}
-						</div>
+                  <div className='space-y-2'>
+                      <Label htmlFor='loginID'>Login ID</Label>
+                      <Input
+                          id='loginID'
+                          name='loginID'
+                          defaultValue={user.loginID}
+                          placeholder='Enter login ID'
+                          required
+                      />
+                      {actionData?.fieldErrors?.loginID && (
+                          <p className='text-sm text-destructive'>
+                              {actionData.fieldErrors.loginID}
+                          </p>
+                      )}
+                  </div>
 
-						<div className='space-y-2'>
-							<Label htmlFor='role'>Role</Label>
-							<Select name='role' defaultValue={user.role}>
-								<SelectTrigger>
-									<SelectValue placeholder='Select role' />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value='student'>Student</SelectItem>
-									<SelectItem value='librarian'>Librarian</SelectItem>
-								</SelectContent>
-							</Select>
-							{actionData?.fieldErrors?.role && (
-								<p className='text-sm text-destructive'>
-									{actionData.fieldErrors.role}
-								</p>
-							)}
-						</div>
+                  <div className='space-y-2'>
+                      <Label htmlFor='role'>Role</Label>
+                      <Select name='role' defaultValue={user.role}>
+                          <SelectTrigger>
+                              <SelectValue placeholder='Select role' />
+                          </SelectTrigger>
+                          <SelectContent>
+                              <SelectItem value='student'>Student</SelectItem>
+                              <SelectItem value='librarian'>Librarian</SelectItem>
+                          </SelectContent>
+                      </Select>
+                      {actionData?.fieldErrors?.role && (
+                          <p className='text-sm text-destructive'>
+                              {actionData.fieldErrors.role}
+                          </p>
+                      )}
+                  </div>
 
-						<div className='space-y-2'>
-							<Label htmlFor='password'>New Password (optional)</Label>
-							<Input
-								id='password'
-								name='password'
-								type='password'
-								placeholder='Enter new password'
-							/>
-							{actionData?.fieldErrors?.password && (
-								<p className='text-sm text-destructive'>
-									{actionData.fieldErrors.password}
-								</p>
-							)}
-						</div>
+                  <div className='space-y-2'>
+                      <Label htmlFor='password'>New Password (optional)</Label>
+                      <Input
+                          id='password'
+                          name='password'
+                          type='password'
+                          placeholder='Enter new password'
+                      />
+                      {actionData?.fieldErrors?.password && (
+                          <p className='text-sm text-destructive'>
+                              {actionData.fieldErrors.password}
+                          </p>
+                      )}
+                  </div>
 
-						<div className='flex gap-4'>
-							<Button
-								type='button'
-								variant='outline'
-								onClick={() => navigate(-1)}
-							>
-								Cancel
-							</Button>
-							<Button type='submit'>Update User</Button>
-						</div>
-					</fetcher.Form>
-				</CardContent>
-			</Card>
-		</div>
+                  <div className='flex gap-4'>
+                      <Button
+                          type='button'
+                          variant='outline'
+                          onClick={() => navigate(-1)}
+                      >
+                          Cancel
+                      </Button>
+                      <Button type='submit'>Update User</Button>
+                  </div>
+              </fetcher.Form>
+          </CardContent>
+      </Card>
+  	</div>
 	)
 }

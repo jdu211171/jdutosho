@@ -9,6 +9,7 @@ use App\Http\Resources\UserListResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -61,11 +62,18 @@ class UserController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        $user->update([
+        $updateData = [
             'loginID' => $validated['loginID'],
             'name' => $validated['name'],
             'role' => $validated['role'],
-        ]);
+        ];
+
+        // Only add password to updateData if it exists in validated data
+        if (isset($validated['password'])) {
+            $updateData['password'] = bcrypt($validated['password']);
+        }
+
+        $user->update($updateData);
 
         return new UserResource($user);
     }

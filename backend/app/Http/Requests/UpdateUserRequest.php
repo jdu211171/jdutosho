@@ -17,6 +17,7 @@ class UpdateUserRequest extends BaseRequest
             'loginID' => ['required', 'string', 'max:255', 'unique:users,loginID,' . $this->route('id')],
             'name' => ['required', 'string', 'max:255'],
             'role' => ['required', 'string', 'in:librarian,student'],
+            'password' => ['nullable', 'string', 'min:6'],
         ];
     }
 }
