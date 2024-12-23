@@ -58,8 +58,6 @@ export async function action({ request }: ActionFunctionArgs) {
 			}
 		)
 
-		console.log(response.data)
-
 		return redirect('/librarian/users')
 	} catch (error: any) {
 		console.error('Create user error:', error)

@@ -12,7 +12,7 @@ import { Form, Link, useNavigation } from '@remix-run/react'
 import type { ActionFunctionArgs } from '@remix-run/node'
 import { data } from '@remix-run/node'
 import { isAxiosError } from 'axios'
-import { useActionData } from 'react-router'
+import { useActionData, useNavigate } from 'react-router'
 import type { LoginFormData } from '~/lib/validation'
 import { loginSchema } from '~/lib/validation'
 import { useForm } from 'react-hook-form'
@@ -21,6 +21,7 @@ import type { SessionData } from '~/types/auth'
 import { createUserSession } from '~/services/auth.server'
 import { api } from '~/lib/api'
 import invariant from 'tiny-invariant'
+import { ArrowLeft } from 'lucide-react'
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
@@ -55,6 +56,7 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function LoginPage() {
 	const actionData = useActionData() as { error?: string }
 	const navigation = useNavigation()
+	const navigate = useNavigate()
 	const isSubmitting = navigation.state === 'submitting'
 	const {
 		register,
@@ -67,7 +69,15 @@ export default function LoginPage() {
 		},
 	})
 	return (
-		<div className='flex h-screen w-full items-center justify-center px-4'>
+		<div className='relative flex h-screen w-full items-center justify-center px-4'>
+      <Button
+        variant="ghost"
+				onClick={() => navigate('/')}
+        className="absolute left-4 top-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Go Back
+      </Button>
 			<Card className='mx-auto max-w-sm'>
 				<CardHeader>
 					<CardTitle className='text-2xl'>Login</CardTitle>

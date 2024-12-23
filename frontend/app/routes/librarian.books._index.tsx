@@ -7,6 +7,8 @@ import { useLoaderData } from '@remix-run/react'
 import { DataTable } from '~/components/book-table/data-table'
 import { useBooksQuery } from '~/hooks/use-books-query'
 import type { BooksResponse, BooksPaginationMeta } from '~/types/books'
+import { Button } from '~/components/ui/button'
+import { Plus } from 'lucide-react'
 
 type LoaderData = {
 	data: BooksResponse['data']
@@ -36,7 +38,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			},
 		})
 
-		// Ensure meta exists with default values if needed
 		const meta = response.data.meta || {
 			current_page: 1,
 			last_page: 1,
@@ -83,9 +84,18 @@ export default function BooksPage() {
 	}
 
 	return (
-		<div className='space-y-4'>
+		<div className='space-y-6'>
 			<div className='flex justify-between items-center'>
-				<h2 className='text-3xl font-bold tracking-tight'>Books</h2>
+				<div>
+					<h2 className='text-3xl font-bold'>Books</h2>
+					<p className='text-muted-foreground'>Manage your books</p>
+				</div>
+				<Button asChild>
+					<a href='/librarian/books/new'>
+						<Plus className='h-4 w-4 mr-2' />
+						Add Book
+					</a>
+        </Button>
 			</div>
 
 			<DataTable
