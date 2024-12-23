@@ -71,35 +71,35 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireLibrarianUser(request)
+	const user = await requireLibrarianUser(request)
 
-  if (request.method !== 'DELETE') {
-    return json(
-      { success: false, message: 'Method not allowed' },
-      { status: 405 }
-    )
-  }
+	if (request.method !== 'DELETE') {
+		return json(
+			{ success: false, message: 'Method not allowed' },
+			{ status: 405 }
+		)
+	}
 
-  const formData = await request.formData()
-  const bookId = formData.get('bookId')
+	const formData = await request.formData()
+	const bookId = formData.get('bookId')
 
-  try {
-    await api.delete(`/books/${bookId}`, {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    })
-    return json({ success: true })
-  } catch (error: any) {
-    console.error('Delete book error:', error)
-    return json(
-      {
-        success: false,
-        error: error.response?.data?.message || 'Failed to delete book',
-      },
-      { status: 400 }
-    )
-  }
+	try {
+		await api.delete(`/books/${bookId}`, {
+			headers: {
+				Authorization: `Bearer ${user.token}`,
+			},
+		})
+		return json({ success: true })
+	} catch (error: any) {
+		console.error('Delete book error:', error)
+		return json(
+			{
+				success: false,
+				error: error.response?.data?.message || 'Failed to delete book',
+			},
+			{ status: 400 }
+		)
+	}
 }
 
 export default function BooksPage() {
@@ -127,7 +127,7 @@ export default function BooksPage() {
 						<Plus className='h-4 w-4 mr-2' />
 						Add Book
 					</a>
-        </Button>
+				</Button>
 			</div>
 
 			<DataTable

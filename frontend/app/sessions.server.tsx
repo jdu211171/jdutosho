@@ -12,9 +12,7 @@ const sessionStorage = createCookieSessionStorage({
 		sameSite: 'lax',
 		secrets: ['s3cr3t'],
 		// Set domain and secure only if in production
-		...(isProduction
-			? { domain: 'jdutosho.uz', secure: true }
-			: {}),
+		...(isProduction ? { domain: 'jdutosho.uz', secure: true } : {}),
 	},
 })
 

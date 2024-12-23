@@ -4,15 +4,15 @@ import { CategoryActions } from './category-actions'
 import { cleanText } from '~/lib/utils'
 
 export const columns: ColumnDef<Category>[] = [
-  {
-    accessorKey: 'name',
-    header: 'Name',
-    cell: ({ row }) => {
-      return cleanText(row.original.name)
-    },
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => <CategoryActions category={row.original} />,
-  },
+	{
+		accessorKey: 'name',
+		header: 'Name',
+		cell: ({ row }) => {
+			return cleanText(row.original.name)
+		},
+	},
+	{
+		id: 'actions',
+		cell: ({ row }) => <CategoryActions category={row.original} />,
+	},
 ]

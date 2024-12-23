@@ -20,22 +20,27 @@ export type RentsPaginationMeta = {
 
 // Only use Zod for API response validation
 export const RentsResponseSchema = z.object({
-	data: z.array(z.object({
-		id: z.number(),
-		book_code: z.string(),
-		status: z.string(),
-		book: z.string(),
-		taken_by: z.string(),
-		given_by: z.string(),
-		given_date: z.string(),
-		passed_days: z.number()
-	}).nullable().transform(val => val || null)),
+	data: z.array(
+		z
+			.object({
+				id: z.number(),
+				book_code: z.string(),
+				status: z.string(),
+				book: z.string(),
+				taken_by: z.string(),
+				given_by: z.string(),
+				given_date: z.string(),
+				passed_days: z.number(),
+			})
+			.nullable()
+			.transform(val => val || null)
+	),
 	meta: z.object({
 		current_page: z.number(),
 		last_page: z.number(),
 		per_page: z.number(),
-		total: z.number()
-	})
+		total: z.number(),
+	}),
 })
 
 export type RentsResponse = z.infer<typeof RentsResponseSchema>

@@ -32,7 +32,9 @@ export const columns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Language' />
 		),
-		cell: ({ row }) => <div className='w-[80px]'>{row.getValue('language')}</div>,
+		cell: ({ row }) => (
+			<div className='w-[80px]'>{row.getValue('language')}</div>
+		),
 	},
 	{
 		accessorKey: 'category',
@@ -50,7 +52,11 @@ export const columns: ColumnDef<Book>[] = [
 	},
 	{
 		id: 'actions',
-		cell: ({ row }) => <div className='w-[20px]'><DataTableRowActions row={row} /></div>,
+		cell: ({ row }) => (
+			<div className='w-[20px]'>
+				<DataTableRowActions row={row} />
+			</div>
+		),
 	},
 ]
 

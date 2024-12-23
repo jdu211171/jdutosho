@@ -70,14 +70,14 @@ export default function LoginPage() {
 	})
 	return (
 		<div className='relative flex h-screen w-full items-center justify-center px-4'>
-      <Button
-        variant="ghost"
+			<Button
+				variant='ghost'
 				onClick={() => navigate('/')}
-        className="absolute left-4 top-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Go Back
-      </Button>
+				className='absolute left-4 top-4'
+			>
+				<ArrowLeft className='mr-2 h-4 w-4' />
+				Go Back
+			</Button>
 			<Card className='mx-auto max-w-sm'>
 				<CardHeader>
 					<CardTitle className='text-2xl'>Login</CardTitle>
