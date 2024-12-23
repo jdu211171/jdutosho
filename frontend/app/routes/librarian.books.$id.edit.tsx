@@ -168,7 +168,6 @@ export default function EditBookPage() {
       <BookForm
         initialValues={formValues}
         categories={categories}
-        onSubmit={() => {}}
         actionData={actionData}
         isSubmitting={isSubmitting}
       />

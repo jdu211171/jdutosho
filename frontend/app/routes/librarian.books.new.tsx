@@ -79,9 +79,6 @@ export async function action({ request }: ActionFunctionArgs) {
         },
       }
     )
-
-    console.log(response.data)
-
     return redirect('/librarian/books')
   } catch (error: any) {
     console.error('Create book error:', error)
@@ -119,7 +116,6 @@ export default function LibrarianBooksNewPage() {
     <div className='mx-auto max-w-lg'>
       <BookForm
         categories={categories}
-        onSubmit={() => {}} // Empty function since form handles submission
         actionData={actionData}
         isSubmitting={isSubmitting}
       />

@@ -15,7 +15,7 @@ class BookCodesAdvancedResource extends BaseResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => $this->book->id,
             'code' => $this->code,
             'status' => $this->status,
             'name' => $this->book->name,

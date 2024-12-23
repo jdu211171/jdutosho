@@ -10,7 +10,6 @@ import type { Category, BookFormFieldErrors, BookFormValues } from '~/types/book
 interface BookFormProps {
   initialValues?: BookFormValues
   categories: Category[]
-  onSubmit: (formData: FormData) => void
   actionData?: {
     error?: string
     fieldErrors?: BookFormFieldErrors
@@ -21,10 +20,9 @@ interface BookFormProps {
 export function BookForm({
   initialValues = {},
   categories,
-  onSubmit,
   actionData,
   isSubmitting = false
-}: BookFormProps) {
+}: Omit<BookFormProps, 'onSubmit'>) {
   const [codes, setCodes] = useState<string[]>(initialValues.codes || [])
   const [currentCode, setCurrentCode] = useState('')
 
@@ -52,12 +50,7 @@ export function BookForm({
         <CardDescription>{initialValues.name ? 'Edit book information' : 'Add a new book to the library'}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          const formData = new FormData(e.currentTarget)
-          codes.forEach(code => formData.append('codes', code))
-          onSubmit(formData)
-        }} className='space-y-4'>
+        <form method='post' className='space-y-4'>
           <div className='space-y-2'>
             <Label htmlFor='name'>Book Title</Label>
             <Input
@@ -164,7 +157,9 @@ export function BookForm({
               </p>
             )}
           </div>
-
+          {codes.map((code) => (
+            <input key={code} type="hidden" name="codes" value={code} />
+          ))}
           <div className='flex gap-4'>
             <Button type='submit'>
               {initialValues.name ? 'Update Book' : 'Create Book'}
