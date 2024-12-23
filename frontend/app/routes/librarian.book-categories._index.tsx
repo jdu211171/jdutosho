@@ -55,40 +55,35 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	if (request.method !== 'DELETE') {
-		return json(
-			{ success: false, error: 'Method not allowed' },
-			{ status: 405 }
-		)
-	}
+  const user = await requireLibrarianUser(request)
 
-	const user = await requireLibrarianUser(request)
-	const formData = await request.formData()
-	const categoryId = formData.get('categoryId')
+  if (request.method !== 'DELETE') {
+    return json(
+      { success: false, message: 'Method not allowed' },
+      { status: 405 }
+    )
+  }
 
-	try {
-		await api.delete(`/book-categories/${categoryId}`, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
+  const formData = await request.formData()
+  const categoryId = formData.get('categoryId')
 
-		toast({
-			title: 'Success',
-			description: 'Category deleted successfully',
-		})
-
-		return json({ success: true })
-	} catch (error: any) {
-		console.error('Delete category error:', error)
-		return json(
-			{
-				success: false,
-				error: error.response?.data?.message || 'Failed to delete category',
-			},
-			{ status: 500 }
-		)
-	}
+  try {
+    await api.delete(`/book-categories/${categoryId}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    })
+    return json({ success: true })
+  } catch (error: any) {
+    console.error('Delete category error:', error)
+    return json(
+      {
+        success: false,
+        error: error.response?.data?.message || 'Failed to delete category',
+      },
+      { status: 400 }
+    )
+  }
 }
 
 export default function BookCategoriesPage() {
