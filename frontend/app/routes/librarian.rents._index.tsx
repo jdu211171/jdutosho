@@ -8,6 +8,8 @@ import { RentCard } from '~/components/rent-card'
 import { Input } from '~/components/ui/input'
 import { RentsResponseSchema } from '~/types/rents'
 import { Button } from '~/components/ui/button'
+import { Card, CardContent } from '~/components/ui/card'
+import { BookOpen } from 'lucide-react'
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const user = await requireLibrarianUser(request)
@@ -63,6 +65,22 @@ export default function LibrarianRentsPage() {
 		return (
 			<div className='p-4 bg-destructive/15 text-destructive rounded-md'>
 				{error}
+			</div>
+		)
+	}
+
+	if (data.length === 0) {
+		return (
+			<div className='space-y-6'>
+				<h1 className='text-3xl font-bold'>All Rentals</h1>
+				<Card className='mx-auto max-w-md text-center'>
+					<CardContent className='pt-6'>
+						<BookOpen className='mx-auto h-12 w-12 text-muted-foreground opacity-50' />
+						<p className='mt-4 text-sm text-muted-foreground'>
+							No rentals at the moment
+						</p>
+					</CardContent>
+				</Card>
 			</div>
 		)
 	}
