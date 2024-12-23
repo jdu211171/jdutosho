@@ -29,7 +29,7 @@ export const columns: ColumnDef<Category>[] = [
     id: 'actions',
     cell: ({ row }) => {
       const category = row.original
-      const fetcher = useFetcher()
+      const fetcher = useFetcher<{ success?: boolean; error?: string }>()
       const [isOpen, setIsOpen] = useState(false)
       const isDeleting = fetcher.state !== 'idle'
 

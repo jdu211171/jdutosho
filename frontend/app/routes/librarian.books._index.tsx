@@ -1,8 +1,8 @@
 import { columns } from '~/components/book-table/columns'
-import type { LoaderFunctionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { getSessionToken } from 'app/services/auth.server'
+import { getSessionToken, requireLibrarianUser } from 'app/services/auth.server'
 import { useLoaderData } from '@remix-run/react'
 import { DataTable } from '~/components/book-table/data-table'
 import { useBooksQuery } from '~/hooks/use-books-query'
@@ -68,6 +68,38 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			}
 		)
 	}
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const user = await requireLibrarianUser(request)
+
+  if (request.method !== 'DELETE') {
+    return json(
+      { success: false, message: 'Method not allowed' },
+      { status: 405 }
+    )
+  }
+
+  const formData = await request.formData()
+  const bookId = formData.get('bookId')
+
+  try {
+    await api.delete(`/books/${bookId}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    })
+    return json({ success: true })
+  } catch (error: any) {
+    console.error('Delete book error:', error)
+    return json(
+      {
+        success: false,
+        error: error.response?.data?.message || 'Failed to delete book',
+      },
+      { status: 400 }
+    )
+  }
 }
 
 export default function BooksPage() {
