@@ -5,15 +5,6 @@ import { DataTableRowActions } from './data-table-row-actions'
 
 export const columns: ColumnDef<Book>[] = [
 	{
-		accessorKey: 'id',
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} title='ID' />
-		),
-		cell: ({ row }) => <div>{row.getValue('id')}</div>,
-		enableSorting: false,
-		enableHiding: true,
-	},
-	{
 		accessorKey: 'code',
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Book Code' />
@@ -41,7 +32,7 @@ export const columns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Language' />
 		),
-		cell: ({ row }) => <div>{row.getValue('language')}</div>,
+		cell: ({ row }) => <div className='w-[80px]'>{row.getValue('language')}</div>,
 	},
 	{
 		accessorKey: 'category',
@@ -59,7 +50,7 @@ export const columns: ColumnDef<Book>[] = [
 	},
 	{
 		id: 'actions',
-		cell: ({ row }) => <DataTableRowActions row={row} />,
+		cell: ({ row }) => <div className='w-[20px]'><DataTableRowActions row={row} /></div>,
 	},
 ]
 

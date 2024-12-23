@@ -26,6 +26,10 @@ const routeMap: Record<string, RouteMapItem> = {
 		title: 'Edit Book',
 		path: '/librarian/books/bookId/edit',
 	},
+	'routes/librarian.books.bookId.lend': {
+		title: 'Lend Book',
+		path: '/librarian/books/bookId/lend',
+	},
 	'routes/librarian.book-categories.categoryId.edit': {
 		title: 'Edit Category',
 		path: '/librarian/book-categories/categoryId/edit',
