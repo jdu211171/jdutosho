@@ -1,6 +1,7 @@
 export type Category = {
 	id: number
 	name: string
+	book_count: number
 }
 
 export type CategoriesPaginationMeta = {

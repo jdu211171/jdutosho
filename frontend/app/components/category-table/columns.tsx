@@ -12,6 +12,13 @@ export const columns: ColumnDef<Category>[] = [
 		},
 	},
 	{
+		accessorKey: 'book_count',
+		header: 'Books',
+		cell: ({ row }) => {
+			return row.original.book_count
+		},
+	},
+	{
 		id: 'actions',
 		cell: ({ row }) => <CategoryActions category={row.original} />,
 	},

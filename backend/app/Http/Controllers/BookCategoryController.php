@@ -7,12 +7,14 @@ use App\Http\Requests\UpdateBookCategoryRequest;
 use App\Http\Resources\BookCategoryListResource;
 use App\Http\Resources\BookCategoryResource;
 use App\Models\BookCategory;
+use Illuminate\Http\Request;
 
 class BookCategoryController extends Controller
 {
     public function index()
     {
-        $book_categories = BookCategory::paginate(10);
+        $book_categories = BookCategory::withCount('books')
+        ->paginate(10);
         return BookCategoryResource::collection($book_categories);
     }
 
@@ -80,5 +82,18 @@ class BookCategoryController extends Controller
     {
         $book_categories = BookCategory::all();
         return BookCategoryListResource::collection($book_categories);
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->input('query');
+
+        $categories = BookCategory::withCount('books')
+            ->when($search, function ($query) use ($search) {
+                return $query->where('name', 'like', "%$search%");
+            })
+            ->paginate(10);
+
+        return BookCategoryListResource::collection($categories);
     }
 }

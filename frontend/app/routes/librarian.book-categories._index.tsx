@@ -6,10 +6,10 @@ import { requireLibrarianUser } from '~/services/auth.server'
 import { Button } from '~/components/ui/button'
 import { Plus } from 'lucide-react'
 import type { CategoriesResponse } from '~/types/categories'
-import { useBooksQuery } from '~/hooks/use-books-query'
 import { DataTable } from '~/components/book-table/data-table'
 import { columns } from '~/components/category-table/columns'
 import { toast } from '~/hooks/use-toast'
+import { useCategoryQuery } from '~/hooks/use-category-query'
 
 type LoaderData = {
 	data: CategoriesResponse['data']
@@ -21,11 +21,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const user = await requireLibrarianUser(request)
 	const url = new URL(request.url)
 	const page = url.searchParams.get('page') || '1'
-	const search = url.searchParams.get('search') || ''
+	const query = url.searchParams.get('query') || ''
 
 	try {
-		const response = await api.get<CategoriesResponse>('/book-categories', {
-			params: { page, search },
+		const endpoint = query ? '/book-categories/search' : '/book-categories'
+		const response = await api.get<CategoriesResponse>(endpoint, {
+			params: { page, query },
 			headers: {
 				Authorization: `Bearer ${user.token}`,
 			},
@@ -88,8 +89,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function BookCategoriesPage() {
 	const { data: categories, meta, error } = useLoaderData<typeof loader>()
-	const { currentPage, search, handlePageChange, handleSearch } =
-		useBooksQuery()
+	const { currentPage, query, handlePageChange, handleSearch } =
+		useCategoryQuery()
 
 	if (error) {
 		return (
@@ -121,7 +122,7 @@ export default function BookCategoriesPage() {
 				currentPage={currentPage}
 				onPageChange={handlePageChange}
 				onSearch={handleSearch}
-				initialSearch={search}
+				initialSearch={query}
 			/>
 		</div>
 	)

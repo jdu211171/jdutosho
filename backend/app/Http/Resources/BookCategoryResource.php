@@ -16,6 +16,7 @@ class BookCategoryResource extends BaseResource
         $data = [
             'id' => $this->id,
             'name' => $this->name,
+            'book_count' => $this->books_count,
         ];
 
         if ($this->relationLoaded('books')) {

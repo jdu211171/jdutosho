@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class BookCategoryListResource extends BaseResource
 {
@@ -17,6 +16,7 @@ class BookCategoryListResource extends BaseResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'book_count' => $this->books_count,
         ];
     }
 }
