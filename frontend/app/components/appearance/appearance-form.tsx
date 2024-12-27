@@ -7,39 +7,44 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Button, buttonVariants } from '../ui/button'
 import { cn } from '~/lib/utils'
+import { Theme, useTheme } from 'remix-themes'
+import { useEffect } from 'react'
 
 const appearanceFormSchema = z.object({
   theme: z.enum(["light", "dark"], {
     required_error: "Please select a theme.",
   }),
-  font: z.enum(["inter", "manrope", "system"], {
-    invalid_type_error: "Select a font",
-    required_error: "Please select a font.",
-  }),
 })
 
 type AppearanceFormValues = z.infer<typeof appearanceFormSchema>
 
-// This can come from your database or API.
-const defaultValues: Partial<AppearanceFormValues> = {
-  theme: "light",
-}
-
 export function AppearanceForm() {
+  const [theme, setTheme] = useTheme()
+
   const form = useForm<AppearanceFormValues>({
     resolver: zodResolver(appearanceFormSchema),
-    defaultValues,
+    defaultValues: {
+      theme: theme as "light" | "dark",
+    },
   })
 
+  // Update form when theme changes externally
+  useEffect(() => {
+    form.setValue('theme', theme as "light" | "dark")
+  }, [theme, form])
+
   function onSubmit(data: AppearanceFormValues) {
+    setTheme(data.theme === 'dark' ? Theme.DARK : Theme.LIGHT)
+
     toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
+      title: "Appearance updated",
+      description: "Your theme preferences have been saved.",
     })
+  }
+
+  const handleThemeChange = (value: "light" | "dark") => {
+    form.setValue('theme', value)
+    setTheme(value === 'dark' ? Theme.DARK : Theme.LIGHT)
   }
 
   return (
@@ -56,8 +61,9 @@ export function AppearanceForm() {
               </FormDescription>
               <FormMessage />
               <RadioGroup
-                onValueChange={field.onChange}
+                onValueChange={handleThemeChange}
                 defaultValue={field.value}
+                value={field.value}
                 className="grid max-w-md grid-cols-2 gap-8 pt-2"
               >
                 <FormItem>

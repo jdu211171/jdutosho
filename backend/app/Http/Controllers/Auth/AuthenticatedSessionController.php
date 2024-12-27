@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\ChangePasswordRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
@@ -51,20 +52,16 @@ class AuthenticatedSessionController extends Controller
         return response()->json(['message' => 'Logged out'], 200);
     }
 
-    public function changePassword(Request $request): JsonResponse
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'string'],
-            'new_password' => ['required', 'string', 'min:6', 'confirmed'],
-        ]);
-
+        $validated = $request->validated();
         $user = Auth::user();
 
         if (!Hash::check($validated['current_password'], $user->password)) {
             return response()->json(['message' => 'Invalid current password'], 401);
         }
 
-        $user->password = $validated['new_password'];
+        $user->password = Hash::make($validated['new_password']);
         $user->save();
 
         return response()->json(['message' => 'Password changed successfully'], 200);
