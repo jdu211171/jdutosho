@@ -99,5 +99,14 @@ export const navConfig: NavConfig = {
 				{ title: 'My Borrowed Books', url: '/student/rents' },
 			],
 		},
+		{
+			title: 'Settings',
+			url: '/student/settings',
+			icon: Settings,
+			items: [
+				{	title: 'Appearance', url: '/student/settings/appearance',	},
+				{	title: 'Credentials',	url: '/student/settings/change-password',	},
+			]
+		},
 	],
 }

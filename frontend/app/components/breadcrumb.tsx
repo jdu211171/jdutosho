@@ -27,6 +27,9 @@ const routeMap: Record<string, RouteMapItem> = {
 	'routes/librarian.books.bookId.lend': {	title: 'Lend Book',	path: '/librarian/books/bookId/lend',	},
 	'routes/librarian.book-categories.categoryId.edit': {	title: 'Edit Category', path: '/librarian/book-categories/categoryId/edit',	},
 	'routes/student': { title: 'Student', path: '/student' },
+	'routes/student.settings': { title: 'Settings', path: '/student/settings' },
+	'routes/student.settings.appearance': { title: 'Appearance', path: '/student/settings/appearance' },
+	'routes/student.settings.change-password': { title: 'Change Password', path: '/student/settings/change-password' },
 	...navConfig.librarian.reduce(
 		(acc, section) => ({
 			...acc,
