@@ -2,7 +2,10 @@ import { useLoaderData } from '@remix-run/react'
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { requireStudentUser } from '~/services/auth.server'
+import {
+	requireStudentUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { BookOpen } from 'lucide-react'
 import type { RentBook } from '~/types/rents'
@@ -13,54 +16,28 @@ type LoaderData = {
 	error: string | null
 }
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-	const user = await requireStudentUser(request)
+export async function loader({ request }: LoaderFunctionArgs) {
+	await requireStudentUser(request)
 
-	try {
-		const response = await api.get<{ data: RentBook[] }>('/student/rents', {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
+	return await makeAuthenticatedRequest(request, async () => {
+		const response = await api.get<{ data: RentBook[] }>('/student/rents')
+
 		return json<LoaderData>({
 			data: response.data.data,
 			error: null,
 		})
-	} catch (error) {
-		console.error('Error fetching borrowed books:', error)
-		return json<LoaderData>(
-			{
-				data: [],
-				error: 'Failed to fetch borrowed books',
-			},
-			{ status: 500 }
-		)
-	}
+	})
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const user = await requireStudentUser(request)
+	await requireStudentUser(request)
 	const formData = await request.formData()
 	const bookId = formData.get('bookId')
 
-	try {
-		const response = await api.put(`/student/${bookId}/return`, null, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
-
+	return await makeAuthenticatedRequest(request, async () => {
+		const response = await api.put(`/student/${bookId}/return`, null)
 		return json({ success: response.status === 200 })
-	} catch (error) {
-		console.error('Return book error:', error)
-		return json(
-			{
-				success: false,
-				message: 'Failed to return book',
-			},
-			{ status: 500 }
-		)
-	}
+	})
 }
 
 export default function StudentBorrowedBooks() {

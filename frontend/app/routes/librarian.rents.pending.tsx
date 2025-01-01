@@ -2,7 +2,10 @@ import { useLoaderData } from '@remix-run/react'
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { Card, CardContent } from '~/components/ui/card'
 import { BookOpen } from 'lucide-react'
 import { useRentsQuery } from '~/hooks/use-rents-query'
@@ -16,17 +19,14 @@ type LoaderData = {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const url = new URL(request.url)
 	const page = url.searchParams.get('page') || '1'
 	const search = url.searchParams.get('search') || ''
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const response = await api.get<PendingReturnsResponse>('/rents/pending', {
 			params: { page, search },
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
 		})
 
 		const meta = response.data.meta || {
@@ -41,44 +41,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			meta,
 			error: null,
 		})
-	} catch (error) {
-		console.error('Error fetching pending returns:', error)
-		return json<LoaderData>(
-			{
-				data: [],
-				meta: {
-					current_page: 1,
-					last_page: 1,
-					per_page: 10,
-					total: 0,
-				},
-				error: 'Failed to fetch pending returns',
-			},
-			{ status: 500 }
-		)
-	}
+	})
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const formData = await request.formData()
 	const rentId = formData.get('rentId')
 
-	try {
-		const response = await api.put(`/rents/${rentId}/accept`, null, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
-
+	return await makeAuthenticatedRequest(request, async () => {
+		const response = await api.put(`/rents/${rentId}/accept`, null)
 		return json({ success: response.status === 200 })
-	} catch (error: any) {
-		console.error('Accept return error:', error)
-		return json({
-			success: false,
-			message: error.response?.data?.message || 'Failed to process return',
-		})
-	}
+	})
 }
 
 export default function LibrarianRentsPendingPage() {

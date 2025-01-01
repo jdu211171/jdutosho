@@ -2,7 +2,10 @@ import { columns } from '~/components/book-table/columns'
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { getSessionToken, requireLibrarianUser } from 'app/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { useLoaderData } from '@remix-run/react'
 import { DataTable } from '~/components/book-table/data-table'
 import { useBooksQuery } from '~/hooks/use-books-query'
@@ -22,20 +25,14 @@ export const metadata = {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+	await requireLibrarianUser(request)
 	const url = new URL(request.url)
-	const token = await getSessionToken(request)
 	const page = url.searchParams.get('page') || '1'
 	const search = url.searchParams.get('search') || ''
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const response = await api.get<BooksResponse>('/books/codes', {
-			params: {
-				page,
-				search,
-			},
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
+			params: { page, search },
 		})
 
 		const meta = response.data.meta || {
@@ -50,28 +47,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			meta,
 			error: null,
 		})
-	} catch (error) {
-		console.error('API Error:', error)
-		return json<LoaderData>(
-			{
-				error: 'Failed to fetch books',
-				data: [],
-				meta: {
-					current_page: 1,
-					last_page: 1,
-					per_page: 10,
-					total: 0,
-				},
-			},
-			{
-				status: 500,
-			}
-		)
-	}
+	})
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 
 	if (request.method !== 'DELETE') {
 		return json(
@@ -83,23 +63,10 @@ export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	const bookId = formData.get('bookId')
 
-	try {
-		await api.delete(`/books/${bookId}`, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
+	return await makeAuthenticatedRequest(request, async () => {
+		await api.delete(`/books/${bookId}`)
 		return json({ success: true })
-	} catch (error: any) {
-		console.error('Delete book error:', error)
-		return json(
-			{
-				success: false,
-				error: error.response?.data?.message || 'Failed to delete book',
-			},
-			{ status: 400 }
-		)
-	}
+	})
 }
 
 export default function BooksPage() {

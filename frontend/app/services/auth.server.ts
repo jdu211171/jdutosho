@@ -1,5 +1,7 @@
 import { createCookieSessionStorage, redirect } from '@remix-run/node'
 import type { SessionData, SessionFlashData, User } from '~/types/auth'
+import { isAxiosError } from 'axios'
+import { api } from '~/lib/api'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -21,6 +23,36 @@ const authSessionStorage = createCookieSessionStorage<
 		secure: isProduction,
 	},
 })
+
+async function handleApiError(error: unknown, request: Request) {
+	if (isAxiosError(error)) {
+		if (error.response?.status === 401) {
+			const session = await authSessionStorage.getSession(
+				request.headers.get('Cookie')
+			)
+			throw redirect('/login', {
+				headers: {
+					'Set-Cookie': await authSessionStorage.destroySession(session),
+				},
+			})
+		}
+		// Handle other API errors
+		throw error
+	}
+	throw error
+}
+
+export async function makeAuthenticatedRequest<T>(
+	request: Request,
+	apiCall: () => Promise<T>
+): Promise<T> {
+	try {
+		return await apiCall()
+	} catch (error) {
+		await handleApiError(error, request)
+		throw error // TypeScript needs this even though handleApiError always throws
+	}
+}
 
 export async function createUserSession(token: string, user: User) {
 	const session = await authSessionStorage.getSession()
@@ -66,6 +98,9 @@ export async function requireLibrarianUser(request: Request) {
 		throw redirect('/login')
 	}
 
+	// Set the token for the API request
+	api.defaults.headers.common['Authorization'] = `Bearer ${userSession.token}`
+
 	return userSession
 }
 
@@ -75,6 +110,9 @@ export async function requireStudentUser(request: Request) {
 	if (userSession.user.role !== 'student') {
 		throw redirect('/login')
 	}
+
+	// Set the token for the API request
+	api.defaults.headers.common['Authorization'] = `Bearer ${userSession.token}`
 
 	return userSession
 }
@@ -92,13 +130,6 @@ export async function logout(request: Request) {
 }
 
 export async function getAuthToken(request: Request) {
-	const session = await authSessionStorage.getSession(
-		request.headers.get('Cookie')
-	)
-	return session.get('token')
-}
-
-export async function getSessionToken(request: Request) {
 	const session = await authSessionStorage.getSession(
 		request.headers.get('Cookie')
 	)

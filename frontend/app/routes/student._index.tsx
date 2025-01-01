@@ -1,7 +1,10 @@
 import { useLoaderData, useRevalidator } from '@remix-run/react'
 import type { LoaderFunctionArgs } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { requireStudentUser } from '~/services/auth.server'
+import {
+	requireStudentUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { useEffect } from 'react'
 import { StatCard } from '~/components/dashboard/stat-card'
 import { getStudentDashboardConfig } from '~/config/dashboard'
@@ -10,35 +13,19 @@ import type { StudentDashboardData } from '~/types/dashboard'
 const REFRESH_INTERVAL = 30000 // 30 seconds
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const user = await requireStudentUser(request)
+	await requireStudentUser(request)
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const response = await api.get<{ data: StudentDashboardData }>(
-			'/student/dashboard',
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
+			'/student/dashboard'
 		)
+
 		return {
 			stats: response.data.data,
 			timestamp: Date.now(),
 			error: null,
 		}
-	} catch (error) {
-		console.error('Dashboard error:', error)
-		return {
-			stats: {
-				totalBorrowed: 0,
-				availableBooks: 0,
-				rentHistory: 0,
-				averageRentDays: 0,
-			},
-			timestamp: Date.now(),
-			error: 'Failed to load dashboard data',
-		}
-	}
+	})
 }
 
 export default function StudentDashboard() {

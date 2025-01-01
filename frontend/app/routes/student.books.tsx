@@ -5,7 +5,10 @@ import { studentBookColumns } from '~/components/book-table/columns'
 import { DataTable } from '~/components/book-table/data-table'
 import { useBooksQuery } from '~/hooks/use-books-query'
 import { api } from '~/lib/api'
-import { requireStudentUser } from '~/services/auth.server'
+import {
+	requireStudentUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import type { BooksResponse, BooksPaginationMeta } from '~/types/books'
 
 type LoaderData = {
@@ -15,17 +18,14 @@ type LoaderData = {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const user = await requireStudentUser(request)
+	await requireStudentUser(request)
 	const url = new URL(request.url)
 	const page = url.searchParams.get('page') || '1'
 	const search = url.searchParams.get('search') || ''
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const response = await api.get<BooksResponse>('/student/books', {
 			params: { page, search },
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
 		})
 
 		const meta = response.data.meta || {
@@ -40,22 +40,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			meta,
 			error: null,
 		})
-	} catch (error) {
-		console.error('Error fetching books:', error)
-		return json<LoaderData>(
-			{
-				data: [],
-				meta: {
-					current_page: 1,
-					last_page: 1,
-					per_page: 10,
-					total: 0,
-				},
-				error: 'Failed to fetch books',
-			},
-			{ status: 500 }
-		)
-	}
+	})
 }
 
 export default function StudentBooksPage() {

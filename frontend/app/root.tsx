@@ -13,7 +13,7 @@ import { themeSessionResolver } from '~/services/theme.server'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { QueryClient } from '@tanstack/query-core'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { getSessionToken } from './services/auth.server'
+import { getAuthToken } from './services/auth.server'
 import { Toaster } from './components/ui/toaster'
 
 export const links: LinksFunction = () => [
@@ -30,8 +30,11 @@ export const links: LinksFunction = () => [
 ]
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const { getTheme } = await themeSessionResolver(request)
-	const token = await getSessionToken(request)
+	const [{ getTheme }, token] = await Promise.all([
+		themeSessionResolver(request),
+		getAuthToken(request),
+	])
+
 	return {
 		theme: getTheme(),
 		ENV: {
@@ -45,6 +48,7 @@ const queryClient = new QueryClient()
 
 export default function AppWithProviders() {
 	const data = useLoaderData<typeof loader>()
+
 	return (
 		<ThemeProvider specifiedTheme={data.theme} themeAction='/action/set-theme'>
 			<App />

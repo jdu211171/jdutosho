@@ -2,7 +2,10 @@ import { useLoaderData } from '@remix-run/react'
 import type { LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { useRentsQuery } from '~/hooks/use-rents-query'
 import { RentCard } from '~/components/rent-card'
 import { Input } from '~/components/ui/input'
@@ -12,24 +15,19 @@ import { Card, CardContent } from '~/components/ui/card'
 import { BookOpen } from 'lucide-react'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const url = new URL(request.url)
 	const page = url.searchParams.get('page') || '1'
 	const search = url.searchParams.get('search') || ''
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const response = await api.get('/rents', {
 			params: { page, search },
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
 		})
 
 		// Validate response data
 		const result = RentsResponseSchema.safeParse(response.data)
-
 		if (!result.success) {
-			console.error('Invalid response data:', result.error)
 			throw new Error('Invalid response data')
 		}
 
@@ -38,22 +36,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			meta: result.data.meta,
 			error: null,
 		})
-	} catch (error) {
-		console.error('Error fetching rents:', error)
-		return json(
-			{
-				data: [],
-				meta: {
-					current_page: 1,
-					last_page: 1,
-					per_page: 10,
-					total: 0,
-				},
-				error: 'Failed to fetch rentals',
-			},
-			{ status: 500 }
-		)
-	}
+	})
 }
 
 export default function LibrarianRentsPage() {

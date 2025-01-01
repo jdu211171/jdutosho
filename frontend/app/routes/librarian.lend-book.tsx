@@ -1,5 +1,8 @@
 import type { ActionFunctionArgs } from '@remix-run/node'
-import { getSessionToken } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { api } from '~/lib/api'
 import { z } from 'zod'
 
@@ -10,6 +13,8 @@ const lendBookSchema = z.object({
 })
 
 export async function action({ request }: ActionFunctionArgs) {
+	await requireLibrarianUser(request)
+
 	// Ensure this is a POST request
 	if (request.method !== 'POST') {
 		return {
@@ -19,33 +24,27 @@ export async function action({ request }: ActionFunctionArgs) {
 		}
 	}
 
+	// Parse and validate the form data
+	const formData = await request.formData()
+	const rawData = {
+		book_code: formData.get('bookId'),
+		login_id: formData.get('studentId'),
+	}
+
 	try {
-		// Get the authentication token
-		const token = await getSessionToken(request)
-
-		// Parse and validate the form data
-		const formData = await request.formData()
-		const rawData = {
-			book_code: formData.get('bookId'),
-			login_id: formData.get('studentId'),
-		}
-
 		// Validate the input data
 		const validatedData = lendBookSchema.parse(rawData)
 
-		// Make the API request to lend the book
-		const response = await api.post('/rents', validatedData, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		})
+		// Make the authenticated API request
+		return await makeAuthenticatedRequest(request, async () => {
+			const response = await api.post('/rents', validatedData)
 
-		// Return a success response
-		return {
-			ok: true,
-			status: 200,
-			data: response.data,
-		}
+			return {
+				ok: true,
+				status: 200,
+				data: response.data,
+			}
+		})
 	} catch (error) {
 		// Handle different types of errors
 		if (error instanceof z.ZodError) {

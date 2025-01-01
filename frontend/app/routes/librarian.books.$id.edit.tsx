@@ -9,7 +9,10 @@ import {
 } from '@remix-run/react'
 import { toast } from '~/hooks/use-toast'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { BookForm } from '~/components/book-form'
 import { Button } from '~/components/ui/button'
 import type { Category, BookFormFieldErrors } from '~/types/books'
@@ -37,29 +40,23 @@ type LoaderData = {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const [bookResponse, categoriesResponse] = await Promise.all([
-			api.get(`/books/${params.id}`, {
-				headers: { Authorization: `Bearer ${user.token}` },
-			}),
-			api.get('/book-categories/list', {
-				headers: { Authorization: `Bearer ${user.token}` },
-			}),
+			api.get(`/books/${params.id}`),
+			api.get('/book-categories/list'),
 		])
 
 		return json<LoaderData>({
 			book: bookResponse.data.data,
 			categories: categoriesResponse.data.data,
 		})
-	} catch (error: any) {
-		throw new Error(error.response?.data?.message || 'Failed to load book data')
-	}
+	})
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const formData = await request.formData()
 
 	const name = formData.get('name')
@@ -88,59 +85,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		return json<ActionData>({ fieldErrors }, { status: 400 })
 	}
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		// Update book details
-		await api.put(
-			`/books/${params.id}`,
-			{
-				name,
-				author,
-				language,
-				category,
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
-		)
+		await api.put(`/books/${params.id}`, {
+			name,
+			author,
+			language,
+			category,
+		})
 
 		// Update book codes
-		await api.put(
-			`/books/${params.id}/code`,
-			{
-				codes: Array.from(codes),
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
-		)
+		await api.put(`/books/${params.id}/code`, {
+			codes: Array.from(codes),
+		})
 
 		return redirect('/librarian/books')
-	} catch (error: any) {
-		console.error('Update book error:', error)
-		const message = error.response?.data?.message
-
-		if (message?.includes('codes')) {
-			return json<ActionData>(
-				{
-					fieldErrors: {
-						codes: 'One or more codes are already in use',
-					},
-				},
-				{ status: 400 }
-			)
-		}
-
-		return json<ActionData>(
-			{
-				error: message || 'Failed to update book',
-			},
-			{ status: 400 }
-		)
-	}
+	})
 }
 
 export default function EditBookPage() {
@@ -157,9 +117,6 @@ export default function EditBookPage() {
 			variant: 'destructive',
 		})
 	}
-
-	const categoryId =
-		categories.find(cat => cat.name === book.category)?.id.toString() || ''
 
 	const formValues = {
 		name: book.name,

@@ -10,7 +10,7 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Form, Link, useNavigation } from '@remix-run/react'
 import type { ActionFunctionArgs } from '@remix-run/node'
-import { data } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { isAxiosError } from 'axios'
 import { useActionData, useNavigate } from 'react-router'
 import type { LoginFormData } from '~/lib/validation'
@@ -20,36 +20,36 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import type { SessionData } from '~/types/auth'
 import { createUserSession } from '~/services/auth.server'
 import { api } from '~/lib/api'
-import invariant from 'tiny-invariant'
 import { ArrowLeft } from 'lucide-react'
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	const loginID = formData.get('loginID')
 	const password = formData.get('password')
+
 	if (!loginID || !password) {
-		return data(
+		return json(
 			{ error: 'Please enter your login ID and password' },
 			{ status: 400 }
 		)
 	}
 
 	try {
-		const response = await api.post<SessionData>(`/login`, {
+		const response = await api.post<SessionData>('/login', {
 			loginID,
 			password,
 		})
-		invariant(response.status === 200, 'Invalid status code')
+
 		const { token, user } = response.data
 		return createUserSession(token, user)
 	} catch (error) {
 		if (isAxiosError(error)) {
-			return data(
+			return json(
 				{ error: error.response?.data?.message || 'Invalid credentials' },
 				{ status: 400 }
 			)
 		}
-		return data({ error: 'Login failed' }, { status: 500 })
+		return json({ error: 'Login failed' }, { status: 500 })
 	}
 }
 

@@ -17,19 +17,52 @@ interface RouteMapItem {
 
 const routeMap: Record<string, RouteMapItem> = {
 	'routes/librarian': { title: 'Librarian', path: '/librarian' },
-	'routes/librarian.settings': { title: 'Settings', path: '/librarian/settings' },
-  'routes/librarian.settings.account': { title: 'Account', path: '/librarian/settings/account' },
-  'routes/librarian.settings.appearance': { title: 'Appearance', path: '/librarian/settings/appearance' },
-  'routes/librarian.settings.change-password': { title: 'Change Password', path: '/librarian/settings/change-password' },
-	'routes/librarian.users.userId.edit': { title: 'Edit Student', path: '/librarian/users/userId/edit', },
-	'routes/librarian.books.new': {	title: 'New Book',	path: '/librarian/books/new',	},
-	'routes/librarian.books.id.edit': {	title: 'Edit Book',	path: '/librarian/books/bookId/edit',	},
-	'routes/librarian.books.bookId.lend': {	title: 'Lend Book',	path: '/librarian/books/bookId/lend',	},
-	'routes/librarian.book-categories.categoryId.edit': {	title: 'Edit Category', path: '/librarian/book-categories/categoryId/edit',	},
+	'routes/librarian.settings': {
+		title: 'Settings',
+		path: '/librarian/settings',
+	},
+	'routes/librarian.settings.account': {
+		title: 'Account',
+		path: '/librarian/settings/account',
+	},
+	'routes/librarian.settings.appearance': {
+		title: 'Appearance',
+		path: '/librarian/settings/appearance',
+	},
+	'routes/librarian.settings.change-password': {
+		title: 'Change Password',
+		path: '/librarian/settings/change-password',
+	},
+	'routes/librarian.users.userId.edit': {
+		title: 'Edit Student',
+		path: '/librarian/users/userId/edit',
+	},
+	'routes/librarian.books.new': {
+		title: 'New Book',
+		path: '/librarian/books/new',
+	},
+	'routes/librarian.books.id.edit': {
+		title: 'Edit Book',
+		path: '/librarian/books/bookId/edit',
+	},
+	'routes/librarian.books.bookId.lend': {
+		title: 'Lend Book',
+		path: '/librarian/books/bookId/lend',
+	},
+	'routes/librarian.book-categories.categoryId.edit': {
+		title: 'Edit Category',
+		path: '/librarian/book-categories/categoryId/edit',
+	},
 	'routes/student': { title: 'Student', path: '/student' },
 	'routes/student.settings': { title: 'Settings', path: '/student/settings' },
-	'routes/student.settings.appearance': { title: 'Appearance', path: '/student/settings/appearance' },
-	'routes/student.settings.change-password': { title: 'Change Password', path: '/student/settings/change-password' },
+	'routes/student.settings.appearance': {
+		title: 'Appearance',
+		path: '/student/settings/appearance',
+	},
+	'routes/student.settings.change-password': {
+		title: 'Change Password',
+		path: '/student/settings/change-password',
+	},
 	...navConfig.librarian.reduce(
 		(acc, section) => ({
 			...acc,

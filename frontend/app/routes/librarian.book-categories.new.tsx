@@ -10,36 +10,22 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useActionData, useNavigate } from '@remix-run/react'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
 import { toast } from '~/hooks/use-toast'
 
 export async function action({ request }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const formData = await request.formData()
 	const name = formData.get('name')
 
-	try {
-		await api.post(
-			'/book-categories',
-			{ name },
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
-		)
-
+	return await makeAuthenticatedRequest(request, async () => {
+		await api.post('/book-categories', { name })
 		return redirect('/librarian/book-categories')
-	} catch (error: any) {
-		console.error('Create category error:', error)
-		return json(
-			{
-				error: error.response?.data?.message || 'Failed to create category',
-			},
-			{ status: 400 }
-		)
-	}
+	})
 }
 
 export default function NewBookCategoryPage() {

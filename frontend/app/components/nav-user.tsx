@@ -72,10 +72,10 @@ export function NavUser({
 						<DropdownMenuSeparator />
 						<Form method='post' action='/logout'>
 							<DropdownMenuItem asChild>
-									<button className='flex w-full items-center gap-2'>
-										<LogOut className='size-4' />
-										Log out
-									</button>
+								<button className='flex w-full items-center gap-2'>
+									<LogOut className='size-4' />
+									Log out
+								</button>
 							</DropdownMenuItem>
 						</Form>
 					</DropdownMenuContent>

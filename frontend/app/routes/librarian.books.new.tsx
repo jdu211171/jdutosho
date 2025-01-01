@@ -9,7 +9,10 @@ import {
 } from '@remix-run/react'
 import { toast } from '~/hooks/use-toast'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { BookForm } from '~/components/book-form'
 import { Button } from '~/components/ui/button'
 import type { Category, BookFormFieldErrors } from '~/types/books'
@@ -24,27 +27,18 @@ type LoaderData = {
 }
 
 export async function loader({ request }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 
-	try {
-		const response = await api.get('/book-categories/list', {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
-
+	return await makeAuthenticatedRequest(request, async () => {
+		const response = await api.get('/book-categories/list')
 		return json<LoaderData>({
 			categories: response.data.data,
 		})
-	} catch (error: any) {
-		throw new Error(
-			error.response?.data?.message || 'Failed to load categories'
-		)
-	}
+	})
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const formData = await request.formData()
 	const name = formData.get('name')
 	const author = formData.get('author')
@@ -72,27 +66,17 @@ export async function action({ request }: ActionFunctionArgs) {
 		return json<ActionData>({ fieldErrors }, { status: 400 })
 	}
 
-	try {
-		const response = await api.post(
-			'/books',
-			{
-				name,
-				author,
-				language,
-				category,
-				codes: Array.from(codes),
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
-		)
-		return redirect('/librarian/books')
-	} catch (error: any) {
-		console.error('Create book error:', error)
-		const message = error.response?.data?.message
-		if (message?.includes('codes')) {
+	return await makeAuthenticatedRequest(request, async () => {
+		const response = await api.post('/books', {
+			name,
+			author,
+			language,
+			category,
+			codes: Array.from(codes),
+		})
+
+		// Special error handling for code duplication
+		if (response.data?.message?.includes('codes')) {
 			return json<ActionData>(
 				{
 					fieldErrors: {
@@ -102,11 +86,9 @@ export async function action({ request }: ActionFunctionArgs) {
 				{ status: 400 }
 			)
 		}
-		return json<ActionData>(
-			{ error: message || 'Failed to create book' },
-			{ status: 400 }
-		)
-	}
+
+		return redirect('/librarian/books')
+	})
 }
 
 export default function LibrarianBooksNewPage() {

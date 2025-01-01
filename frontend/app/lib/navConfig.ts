@@ -4,7 +4,7 @@ import {
 	Book,
 	UsersRound,
 	Library,
-  Settings,
+	Settings,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -83,10 +83,10 @@ export const navConfig: NavConfig = {
 			url: '/librarian/settings',
 			icon: Settings,
 			items: [
-				{ title: 'Account',	url: '/librarian/settings/account',	},
-				{	title: 'Appearance', url: '/librarian/settings/appearance',	},
-				{	title: 'Credentials',	url: '/librarian/settings/change-password',	},
-			]
+				{ title: 'Account', url: '/librarian/settings/account' },
+				{ title: 'Appearance', url: '/librarian/settings/appearance' },
+				{ title: 'Credentials', url: '/librarian/settings/change-password' },
+			],
 		},
 	],
 	student: [
@@ -104,9 +104,9 @@ export const navConfig: NavConfig = {
 			url: '/student/settings',
 			icon: Settings,
 			items: [
-				{	title: 'Appearance', url: '/student/settings/appearance',	},
-				{	title: 'Credentials',	url: '/student/settings/change-password',	},
-			]
+				{ title: 'Appearance', url: '/student/settings/appearance' },
+				{ title: 'Credentials', url: '/student/settings/change-password' },
+			],
 		},
 	],
 }

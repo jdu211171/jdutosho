@@ -2,13 +2,15 @@ import { useLoaderData } from '@remix-run/react'
 import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { Button } from '~/components/ui/button'
 import { Plus } from 'lucide-react'
 import type { CategoriesResponse } from '~/types/categories'
 import { DataTable } from '~/components/book-table/data-table'
 import { columns } from '~/components/category-table/columns'
-import { toast } from '~/hooks/use-toast'
 import { useCategoryQuery } from '~/hooks/use-category-query'
 
 type LoaderData = {
@@ -18,18 +20,15 @@ type LoaderData = {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const url = new URL(request.url)
 	const page = url.searchParams.get('page') || '1'
 	const query = url.searchParams.get('query') || ''
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const endpoint = query ? '/book-categories/search' : '/book-categories'
 		const response = await api.get<CategoriesResponse>(endpoint, {
 			params: { page, query },
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
 		})
 
 		return json<LoaderData>({
@@ -37,26 +36,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			meta: response.data.meta,
 			error: null,
 		})
-	} catch (error) {
-		console.error('Error fetching categories:', error)
-		return json<LoaderData>(
-			{
-				data: [],
-				meta: {
-					current_page: 1,
-					last_page: 1,
-					per_page: 10,
-					total: 0,
-				},
-				error: 'Failed to fetch categories',
-			},
-			{ status: 500 }
-		)
-	}
+	})
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 
 	if (request.method !== 'DELETE') {
 		return json(
@@ -68,23 +52,10 @@ export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	const categoryId = formData.get('categoryId')
 
-	try {
-		await api.delete(`/book-categories/${categoryId}`, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
+	return await makeAuthenticatedRequest(request, async () => {
+		await api.delete(`/book-categories/${categoryId}`)
 		return json({ success: true })
-	} catch (error: any) {
-		console.error('Delete category error:', error)
-		return json(
-			{
-				success: false,
-				error: error.response?.data?.message || 'Failed to delete category',
-			},
-			{ status: 400 }
-		)
-	}
+	})
 }
 
 export default function BookCategoriesPage() {

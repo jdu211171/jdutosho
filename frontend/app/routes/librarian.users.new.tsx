@@ -10,7 +10,10 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useActionData, useNavigate } from '@remix-run/react'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
 import { toast } from '~/hooks/use-toast'
 
@@ -24,7 +27,7 @@ type ActionData = {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const formData = await request.formData()
 	const name = formData.get('name')
 	const loginID = formData.get('loginID')
@@ -42,46 +45,31 @@ export async function action({ request }: ActionFunctionArgs) {
 		return json<ActionData>({ fieldErrors }, { status: 400 })
 	}
 
-	try {
-		const response = await api.post(
-			'/users',
-			{
+	return await makeAuthenticatedRequest(request, async () => {
+		try {
+			await api.post('/users', {
 				name,
 				loginID,
 				password,
 				role: 'student',
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
-		)
+			})
 
-		return redirect('/librarian/users')
-	} catch (error: any) {
-		console.error('Create user error:', error)
-		const message = error.response?.data?.message
-
-		// Check if error is about duplicate login_id
-		if (message?.includes('loginID')) {
-			return json<ActionData>(
-				{
-					fieldErrors: {
-						loginID: 'This Login ID is already taken',
+			return redirect('/librarian/users')
+		} catch (error: any) {
+			// Check if error is about duplicate login_id
+			if (error.response?.data?.message?.includes('loginID')) {
+				return json<ActionData>(
+					{
+						fieldErrors: {
+							loginID: 'This Login ID is already taken',
+						},
 					},
-				},
-				{ status: 400 }
-			)
+					{ status: 400 }
+				)
+			}
+			throw error // Let makeAuthenticatedRequest handle other errors
 		}
-
-		return json<ActionData>(
-			{
-				error: message || 'Failed to create user',
-			},
-			{ status: 400 }
-		)
-	}
+	})
 }
 
 export default function NewUserPage() {

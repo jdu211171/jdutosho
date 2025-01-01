@@ -7,7 +7,10 @@ import { Button } from '~/components/ui/button'
 import type { ActionFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { SearchableSelect } from '~/components/searchable-select'
 
 const lendingSchema = z.object({
@@ -17,7 +20,7 @@ const lendingSchema = z.object({
 type LendingFormValues = z.infer<typeof lendingSchema>
 
 export async function action({ request, params }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const formData = await request.formData()
 	const studentId = formData.get('studentId')
 	const bookId = params.bookId
@@ -26,25 +29,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		return json({ error: 'Invalid student ID' }, { status: 400 })
 	}
 
-	try {
-		await api.post(
-			'/rents',
-			{
-				book_code: bookId,
-				login_id: studentId,
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
-		)
-		return redirect('/librarian/books')
-	} catch (error: any) {
-		return json({
-			error: error.response?.data?.message || 'Failed to lend book',
+	return await makeAuthenticatedRequest(request, async () => {
+		await api.post('/rents', {
+			book_code: bookId,
+			login_id: studentId,
 		})
-	}
+		return redirect('/librarian/books')
+	})
 }
 
 export default function LendBookPage() {
@@ -84,7 +75,6 @@ export default function LendBookPage() {
 						getOptionLabel={item => item.loginID}
 						getOptionValue={item => item.loginID}
 					/>
-
 					<div className='flex justify-end gap-4'>
 						<Button
 							variant='outline'

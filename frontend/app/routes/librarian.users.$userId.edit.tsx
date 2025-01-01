@@ -15,7 +15,10 @@ import {
 	useFetcher,
 } from '@remix-run/react'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import {
 	json,
 	redirect,
@@ -32,29 +35,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '~/components/ui/select'
-import { update } from 'lodash'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const userId = params.userId
 
-	try {
-		const response = await api.get<{ data: User }>(`/users/${userId}`, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
-
+	return await makeAuthenticatedRequest(request, async () => {
+		const response = await api.get<{ data: User }>(`/users/${userId}`)
 		return json({ user: response.data.data })
-	} catch (error: any) {
-		console.error('Error fetching user:', error)
-		throw json(
-			{
-				error: error.response?.data?.message || 'Failed to fetch user',
-			},
-			{ status: 404 }
-		)
-	}
+	})
 }
 
 type ActionData = {
@@ -70,7 +59,7 @@ type ActionData = {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const formData = await request.formData()
 	const name = formData.get('name')
 	const loginID = formData.get('loginID')
@@ -90,7 +79,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		return json<ActionData>({ fieldErrors }, { status: 400 })
 	}
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const updateData: Record<string, any> = {
 			name,
 			loginID,
@@ -101,36 +90,25 @@ export async function action({ request, params }: ActionFunctionArgs) {
 			updateData.password = password
 		}
 
-		await api.put(`/users/${userId}`, updateData, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
-
-		return redirect('/librarian/users')
-	} catch (error: any) {
-		console.error('Update user error:', error)
-
 		// Handle validation errors from API
-		if (error.response?.status === 422) {
-			const errors = error.response.data.errors
-			const fieldErrors: ActionData['fieldErrors'] = {}
+		try {
+			await api.put(`/users/${userId}`, updateData)
+			return redirect('/librarian/users')
+		} catch (error: any) {
+			if (error.response?.status === 422) {
+				const errors = error.response.data.errors
+				const fieldErrors: ActionData['fieldErrors'] = {}
 
-			if (errors.name) fieldErrors.name = errors.name[0]
-			if (errors.loginID) fieldErrors.loginID = errors.loginID[0]
-			if (errors.password) fieldErrors.password = errors.password[0]
-			if (errors.role) fieldErrors.role = errors.role[0]
+				if (errors.name) fieldErrors.name = errors.name[0]
+				if (errors.loginID) fieldErrors.loginID = errors.loginID[0]
+				if (errors.password) fieldErrors.password = errors.password[0]
+				if (errors.role) fieldErrors.role = errors.role[0]
 
-			return json<ActionData>({ fieldErrors }, { status: 422 })
+				return json<ActionData>({ fieldErrors }, { status: 422 })
+			}
+			throw error
 		}
-
-		return json<ActionData>(
-			{
-				error: error.response?.data?.message || 'Failed to update user',
-			},
-			{ status: 400 }
-		)
-	}
+	})
 }
 
 export default function EditUserPage() {

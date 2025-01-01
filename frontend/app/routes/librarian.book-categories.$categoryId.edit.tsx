@@ -10,7 +10,10 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useActionData, useLoaderData, useNavigate } from '@remix-run/react'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import {
 	json,
 	redirect,
@@ -21,58 +24,28 @@ import { toast } from '~/hooks/use-toast'
 import type { Category } from '~/types/categories'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const categoryId = params.categoryId
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const response = await api.get<{ data: Category }>(
-			`/book-categories/${categoryId}`,
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
+			`/book-categories/${categoryId}`
 		)
 
 		return json({ category: response.data.data })
-	} catch (error: any) {
-		console.error('Error fetching category:', error)
-		throw json(
-			{
-				error: error.response?.data?.message || 'Failed to fetch category',
-			},
-			{ status: 404 }
-		)
-	}
+	})
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const formData = await request.formData()
 	const name = formData.get('name')
 	const categoryId = params.categoryId
 
-	try {
-		await api.put(
-			`/book-categories/${categoryId}`,
-			{ name },
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
-		)
-
+	return await makeAuthenticatedRequest(request, async () => {
+		await api.put(`/book-categories/${categoryId}`, { name })
 		return redirect('/librarian/book-categories')
-	} catch (error: any) {
-		console.error('Update category error:', error)
-		return json(
-			{
-				error: error.response?.data?.message || 'Failed to update category',
-			},
-			{ status: 400 }
-		)
-	}
+	})
 }
 
 export default function EditBookCategoryPage() {

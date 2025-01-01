@@ -1,7 +1,10 @@
 import { useLoaderData, useRevalidator } from '@remix-run/react'
 import type { LoaderFunctionArgs } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { useEffect } from 'react'
 import { StatCard } from '~/components/dashboard/stat-card'
 import { getLibrarianDashboardConfig } from '~/config/dashboard'
@@ -10,31 +13,14 @@ import type { LibrarianDashboardData } from '~/types/dashboard'
 const REFRESH_INTERVAL = 30000 // 30 seconds
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const response = await api.get<{ data: LibrarianDashboardData }>(
-			'/librarian/dashboard',
-			{
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			}
+			'/librarian/dashboard'
 		)
 		return { stats: response.data.data, timestamp: Date.now(), error: null }
-	} catch (error) {
-		console.error('Dashboard error:', error)
-		return {
-			stats: {
-				totalBooks: 0,
-				activeStudents: 0,
-				totalRents: 0,
-				averageRentDays: 0,
-			},
-			timestamp: Date.now(),
-			error: 'Failed to load dashboard data',
-		}
-	}
+	})
 }
 
 export default function LibrarianDashboard() {

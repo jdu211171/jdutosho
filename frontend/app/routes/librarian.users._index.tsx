@@ -2,7 +2,10 @@ import { useLoaderData } from '@remix-run/react'
 import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
-import { requireLibrarianUser } from '~/services/auth.server'
+import {
+	requireLibrarianUser,
+	makeAuthenticatedRequest,
+} from '~/services/auth.server'
 import { Button } from '~/components/ui/button'
 import { Plus } from 'lucide-react'
 import { DataTable } from '~/components/book-table/data-table'
@@ -17,17 +20,14 @@ type LoaderData = {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 	const url = new URL(request.url)
 	const page = url.searchParams.get('page') || '1'
 	const search = url.searchParams.get('search') || ''
 
-	try {
+	return await makeAuthenticatedRequest(request, async () => {
 		const response = await api.get<UsersResponse>('/users', {
 			params: { page, search },
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
 		})
 
 		return json<LoaderData>({
@@ -35,26 +35,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			meta: response.data.meta,
 			error: null,
 		})
-	} catch (error) {
-		console.error('Error fetching users:', error)
-		return json<LoaderData>(
-			{
-				data: [],
-				meta: {
-					current_page: 1,
-					last_page: 1,
-					per_page: 10,
-					total: 0,
-				},
-				error: 'Failed to fetch users',
-			},
-			{ status: 500 }
-		)
-	}
+	})
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const user = await requireLibrarianUser(request)
+	await requireLibrarianUser(request)
 
 	if (request.method !== 'DELETE') {
 		return json(
@@ -66,24 +51,10 @@ export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	const userId = formData.get('userId')
 
-	try {
-		await api.delete(`/users/${userId}`, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		})
-
+	return await makeAuthenticatedRequest(request, async () => {
+		await api.delete(`/users/${userId}`)
 		return json({ success: true })
-	} catch (error: any) {
-		console.error('Delete user error:', error)
-		return json(
-			{
-				success: false,
-				error: error.response?.data?.message || 'Failed to delete user',
-			},
-			{ status: 400 }
-		)
-	}
+	})
 }
 
 export default function UsersPage() {
