@@ -6,6 +6,7 @@
 	"scripts": {
 		"build": "remix vite:build",
 		"dev": "remix vite:dev",
+		"host": "remix vite:dev --host",
 		"start": "cross-env SESSION_SECRET=jdutosho remix-serve ./build/server/index.js",
 		"typecheck": "tsc",
 		"format": "prettier --write .",
