@@ -26,6 +26,7 @@ export function DataTableRowActions({ row }: { row: any }) {
 	const isDeleting = fetcher.state !== 'idle'
 	const [isDialogOpen, setIsDialogOpen] = useState(false)
 	const navigate = useNavigate()
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
 			toast({
@@ -41,14 +42,17 @@ export function DataTableRowActions({ row }: { row: any }) {
 			})
 		}
 	}, [fetcher.state, fetcher.data])
+
 	const handleDelete = () => {
 		const formData = new FormData()
 		formData.append('bookId', row.original.id.toString())
 		fetcher.submit(formData, { method: 'delete' })
 	}
+
 	const handleLend = () => {
 		navigate(`/librarian/books/${row.original.code}/lend`)
 	}
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -78,7 +82,7 @@ export function DataTableRowActions({ row }: { row: any }) {
 					</AlertDialogTrigger>
 					<AlertDialogContent>
 						<AlertDialogHeader>
-							<AlertDialogTitle>Delete Book</AlertDialogTitle>
+							<AlertDialogTitle>Delete</AlertDialogTitle>
 							<AlertDialogDescription>
 								Are you sure you want to delete the book "{row.original.name}"?
 								This action cannot be undone.

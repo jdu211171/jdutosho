@@ -53,6 +53,27 @@ export function DataTable<TData, TValue>({
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [search, setSearch] = React.useState(initialSearch)
 
+	React.useEffect(() => {
+  const handleResize = () => {
+    const isMobile = window.innerWidth < 768
+    const newColumnVisibility: VisibilityState = {}
+
+    columns.forEach(column => {
+      if ('accessorKey' in column) {
+        // Hide columns that are marked as hideable on mobile
+        newColumnVisibility[column.accessorKey as string] =
+          !isMobile || !column.enableHiding
+      }
+    })
+
+    setColumnVisibility(newColumnVisibility)
+  }
+
+  handleResize() // Initial call
+  window.addEventListener('resize', handleResize)
+  return () => window.removeEventListener('resize', handleResize)
+}, [columns])
+
 	const table = useReactTable({
 		data,
 		columns,
@@ -87,14 +108,14 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className='space-y-4'>
-			<DataTableToolbar
-				table={table}
-				search={search}
-				onSearchChange={handleSearchChange}
-			/>
-			<div className='rounded-md border'>
-				<Table>
-					<TableHeader>
+	    <DataTableToolbar
+	      table={table}
+	      search={search}
+	      onSearchChange={handleSearchChange}
+	    />
+			<div className='overflow-x-auto rounded-md border'>
+      <Table>
+        <TableHeader className='hidden md:table-header-group'>
 						{table.getHeaderGroups().map(headerGroup => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map(header => {
@@ -112,36 +133,40 @@ export function DataTable<TData, TValue>({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map(row => (
-								<TableRow
-									key={row.id}
-									data-state={row.getIsSelected() && 'selected'}
-								>
-									{row.getVisibleCells().map(cell => (
-										<TableCell key={cell.id}>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext()
-											)}
-										</TableCell>
-									))}
-								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									className='h-24 text-center'
-								>
-									No results.
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
+		      <TableBody>
+		        {table.getRowModel().rows?.length ? (
+		          table.getRowModel().rows.map(row => (
+		            <TableRow
+		              key={row.id}
+		              data-state={row.getIsSelected() && 'selected'}
+		              className='w-full'
+		            >
+		              {row.getVisibleCells().map(cell => (
+		                <TableCell
+		                  key={cell.id}
+		                  className='py-2 md:py-4'
+		                >
+		                  {flexRender(
+		                    cell.column.columnDef.cell,
+		                    cell.getContext()
+		                  )}
+		                </TableCell>
+		              ))}
+		            </TableRow>
+		          ))
+		        ) : (
+		          <TableRow>
+		            <TableCell
+		              colSpan={columns.length}
+		              className='h-24 text-center'
+		            >
+		              No results.
+		            </TableCell>
+		          </TableRow>
+		        )}
+		      </TableBody>
+		    </Table>
+		  </div>
 			{onPageChange && pageCount > 1 && (
 				<DataTablePagination
 					table={table}
