@@ -17,6 +17,15 @@ import {
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
 import { toast } from '~/hooks/use-toast'
 
+export function meta() {
+	return [
+		{ title: 'New Book Category' },
+		{
+			description: 'Create a new book category',
+		},
+	]
+}
+
 export async function action({ request }: ActionFunctionArgs) {
 	await requireLibrarianUser(request)
 	const formData = await request.formData()

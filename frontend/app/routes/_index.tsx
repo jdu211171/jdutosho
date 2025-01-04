@@ -12,6 +12,16 @@ import { Menu } from 'lucide-react'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger } from '~/components/ui/sheet'
 
+export function meta() {
+	return [
+		{ title: 'Library Management System' },
+		{
+			description:
+				'Efficient library resource management system for students and librarians',
+		},
+	]
+}
+
 export default function Index() {
 	const [isOpen, setIsOpen] = useState(false)
 
@@ -151,14 +161,4 @@ export default function Index() {
 			</main>
 		</div>
 	)
-}
-
-export function meta() {
-	return [
-		{ title: 'Library Management System' },
-		{
-			description:
-				'Efficient library resource management system for students and librarians',
-		},
-	]
 }

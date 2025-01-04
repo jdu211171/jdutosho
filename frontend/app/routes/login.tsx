@@ -22,6 +22,10 @@ import { createUserSession } from '~/services/auth.server'
 import { api } from '~/lib/api'
 import { ArrowLeft } from 'lucide-react'
 
+export function meta() {
+	return [{ title: 'Login' }, { description: 'Login to your account' }]
+}
+
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	const loginID = formData.get('loginID')

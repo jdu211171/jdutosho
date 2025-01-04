@@ -1,20 +1,11 @@
 import { Outlet } from '@remix-run/react'
 
-export const metadata = {
-	title: 'Forms',
-	description: 'Advanced form example using react-hook-form and Zod.',
+export function meta() {
+	return [
+		{ title: 'Forms' },
+		{ description: 'Advanced form example using react-hook-form and Zod.' },
+	]
 }
-
-const sidebarNavItems = [
-	{
-		title: 'Account',
-		href: '/examples/forms/account',
-	},
-	{
-		title: 'Appearance',
-		href: '/examples/forms/appearance',
-	},
-]
 
 interface SettingsLayoutProps {
 	children: React.ReactNode

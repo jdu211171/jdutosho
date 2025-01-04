@@ -8,6 +8,13 @@ import {
 } from '~/services/auth.server'
 import { api } from '~/lib/api'
 
+export function meta() {
+	return [
+		{ title: 'Change Password' },
+		{ description: 'Change your password to keep your account secure.' },
+	]
+}
+
 interface ActionData {
 	success: boolean
 	message: string

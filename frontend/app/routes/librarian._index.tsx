@@ -10,6 +10,10 @@ import { StatCard } from '~/components/dashboard/stat-card'
 import { getLibrarianDashboardConfig } from '~/config/dashboard'
 import type { LibrarianDashboardData } from '~/types/dashboard'
 
+export function meta() {
+	return [{ title: 'Dashboard' }, { description: 'Librarian dashboard' }]
+}
+
 const REFRESH_INTERVAL = 30000 // 30 seconds
 
 export async function loader({ request }: LoaderFunctionArgs) {

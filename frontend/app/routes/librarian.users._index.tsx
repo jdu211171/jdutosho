@@ -13,6 +13,16 @@ import { columns } from '~/components/user-table/columns'
 import { useBooksQuery } from '~/hooks/use-books-query'
 import type { UsersResponse } from '~/types/users'
 
+export function meta() {
+	return [
+		{ title: 'Users Table' },
+		{
+			description:
+				'View and manage student users in the library management system',
+		},
+	]
+}
+
 type LoaderData = {
 	data: UsersResponse['data']
 	meta: UsersResponse['meta']

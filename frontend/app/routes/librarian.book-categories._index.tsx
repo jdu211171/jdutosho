@@ -13,6 +13,13 @@ import { DataTable } from '~/components/book-table/data-table'
 import { columns } from '~/components/category-table/columns'
 import { useCategoryQuery } from '~/hooks/use-category-query'
 
+export function meta() {
+	return [
+		{ title: 'Book Categories' },
+		{ description: 'Manage book categories' },
+	]
+}
+
 type LoaderData = {
 	data: CategoriesResponse['data']
 	meta: CategoriesResponse['meta']

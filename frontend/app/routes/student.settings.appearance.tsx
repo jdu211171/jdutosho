@@ -1,6 +1,13 @@
 import { AppearanceForm } from '~/components/appearance/appearance-form'
 import { Separator } from '~/components/ui/separator'
 
+export function meta() {
+	return [
+		{ title: 'Appearance' },
+		{ description: 'Customize the appearance of the app' },
+	]
+}
+
 export default function SettingsAppearancePage() {
 	return (
 		<div className='space-y-6'>

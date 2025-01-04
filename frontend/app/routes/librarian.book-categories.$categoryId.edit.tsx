@@ -23,6 +23,13 @@ import {
 import { toast } from '~/hooks/use-toast'
 import type { Category } from '~/types/categories'
 
+export function meta() {
+	return [
+		{ title: 'Edit Book Category' },
+		{ description: 'Edit a book category' },
+	]
+}
+
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	await requireLibrarianUser(request)
 	const categoryId = params.categoryId

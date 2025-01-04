@@ -12,6 +12,13 @@ import { useRentsQuery } from '~/hooks/use-rents-query'
 import type { PendingReturnsResponse } from '~/types/rents'
 import { ReturnRequestCard } from '~/components/return-request-card'
 
+export function meta() {
+	return [
+		{ title: 'Pending Returns' },
+		{ description: 'Review and process book return requests from students' },
+	]
+}
+
 type LoaderData = {
 	data: PendingReturnsResponse['data']
 	meta: PendingReturnsResponse['meta']

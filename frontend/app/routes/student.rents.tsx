@@ -11,6 +11,13 @@ import { BookOpen } from 'lucide-react'
 import type { RentBook } from '~/types/rents'
 import { BorrowedBookCard } from '~/components/borrowed-book-card'
 
+export function meta() {
+	return [
+		{ title: 'Borrowed Books' },
+		{ description: 'List of books borrowed by the student' },
+	]
+}
+
 type LoaderData = {
 	data: RentBook[]
 	error: string | null

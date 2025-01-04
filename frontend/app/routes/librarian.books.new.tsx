@@ -17,6 +17,13 @@ import { BookForm } from '~/components/book-form'
 import { Button } from '~/components/ui/button'
 import type { Category, BookFormFieldErrors } from '~/types/books'
 
+export function meta() {
+	return [
+		{ title: 'New Book' },
+		{ description: 'Add a new book to the library' },
+	]
+}
+
 type ActionData = {
 	error?: string
 	fieldErrors?: BookFormFieldErrors

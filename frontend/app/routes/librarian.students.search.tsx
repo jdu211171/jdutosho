@@ -5,6 +5,10 @@ import {
 } from '~/services/auth.server'
 import { api } from '~/lib/api'
 
+export function meta() {
+	return [{ title: 'Search Students' }, { description: 'Search for students' }]
+}
+
 interface Student {
 	id: number
 	loginID: string

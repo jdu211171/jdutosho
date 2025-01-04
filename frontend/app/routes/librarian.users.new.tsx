@@ -17,6 +17,16 @@ import {
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
 import { toast } from '~/hooks/use-toast'
 
+export function meta() {
+	return [
+		{ title: 'Create new user' },
+		{
+			description:
+				'Create a new student account in the library management system',
+		},
+	]
+}
+
 type ActionData = {
 	error?: string
 	fieldErrors?: {

@@ -5,6 +5,13 @@ import {
 } from '~/services/auth.server'
 import { api } from '~/lib/api'
 
+export function meta() {
+	return [
+		{ title: 'Search Books' },
+		{ description: 'Search for books in the library' },
+	]
+}
+
 interface Book {
 	id: number
 	code: string

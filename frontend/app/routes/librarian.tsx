@@ -7,6 +7,10 @@ import { DynamicBreadcrumb } from '~/components/breadcrumb'
 import { requireLibrarianUser } from '~/services/auth.server'
 import { ModeToggle } from '~/components/mode-toggle'
 
+export function meta() {
+	return [{ title: 'Librarian' }, { description: 'Librarian dashboard' }]
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
 	const { user } = await requireLibrarianUser(request)
 	return { user }

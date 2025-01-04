@@ -14,6 +14,13 @@ import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
 import { BookOpen } from 'lucide-react'
 
+export function meta() {
+	return [
+		{ title: 'All Rentals' },
+		{ description: 'View and manage book rentals' },
+	]
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
 	await requireLibrarianUser(request)
 	const url = new URL(request.url)

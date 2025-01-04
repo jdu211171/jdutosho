@@ -7,6 +7,13 @@ import { Separator } from '~/components/ui/separator'
 import { SidebarInset, SidebarTrigger } from '~/components/ui/sidebar'
 import { requireStudentUser } from '~/services/auth.server'
 
+export function meta() {
+	return [
+		{ title: 'Student Dashboard' },
+		{ description: 'Student dashboard for JDUTosho' },
+	]
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
 	const { user } = await requireStudentUser(request)
 	return { user }

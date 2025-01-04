@@ -10,6 +10,13 @@ import { StatCard } from '~/components/dashboard/stat-card'
 import { getStudentDashboardConfig } from '~/config/dashboard'
 import type { StudentDashboardData } from '~/types/dashboard'
 
+export function meta() {
+	return [
+		{ title: 'Dashboard' },
+		{ description: 'Student dashboard for JDUTOSHO' },
+	]
+}
+
 const REFRESH_INTERVAL = 30000 // 30 seconds
 
 export async function loader({ request }: LoaderFunctionArgs) {

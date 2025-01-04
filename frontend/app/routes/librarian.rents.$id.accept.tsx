@@ -5,6 +5,13 @@ import {
 } from '~/services/auth.server'
 import { api } from '~/lib/api'
 
+export function meta() {
+	return [
+		{ title: 'Accept Return' },
+		{ description: 'Accept a return request' },
+	]
+}
+
 export async function action({ request, params }: ActionFunctionArgs) {
 	await requireLibrarianUser(request)
 	const { id } = params

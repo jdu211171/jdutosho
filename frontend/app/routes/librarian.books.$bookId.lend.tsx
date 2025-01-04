@@ -13,6 +13,10 @@ import {
 } from '~/services/auth.server'
 import { SearchableSelect } from '~/components/searchable-select'
 
+export function meta() {
+	return [{ title: 'Lend Book' }, { description: 'Lend a book to a student' }]
+}
+
 const lendingSchema = z.object({
 	studentId: z.string().min(1, 'Student ID is required'),
 })

@@ -13,15 +13,17 @@ import type { BooksResponse, BooksPaginationMeta } from '~/types/books'
 import { Button } from '~/components/ui/button'
 import { Plus } from 'lucide-react'
 
+export function meta() {
+	return [
+		{ title: 'Books Management' },
+		{ description: 'Manage library books inventory' },
+	]
+}
+
 type LoaderData = {
 	data: BooksResponse['data']
 	meta: BooksPaginationMeta
 	error: string | null
-}
-
-export const metadata = {
-	title: 'Books Management',
-	description: 'Manage library books inventory',
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {

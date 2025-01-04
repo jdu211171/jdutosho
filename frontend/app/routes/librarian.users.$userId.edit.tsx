@@ -36,6 +36,16 @@ import {
 	SelectValue,
 } from '~/components/ui/select'
 
+export function meta() {
+	return [
+		{ title: 'Update User Profile' },
+		{
+			description:
+				'Update user account details in the library management system',
+		},
+	]
+}
+
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	await requireLibrarianUser(request)
 	const userId = params.userId

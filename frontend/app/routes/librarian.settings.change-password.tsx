@@ -8,6 +8,16 @@ import {
 } from '~/services/auth.server'
 import { api } from '~/lib/api'
 
+export function meta() {
+	return [
+		{ title: 'Credential Settings' },
+		{
+			description:
+				'Change your password to keep your account secure. Make sure to use a strong password that you do not use elsewhere.',
+		},
+	]
+}
+
 interface ActionData {
 	success: boolean
 	message: string

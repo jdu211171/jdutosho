@@ -6,6 +6,10 @@ import {
 import { api } from '~/lib/api'
 import { z } from 'zod'
 
+export function meta() {
+	return [{ title: 'Lend Book' }, { description: 'Lend a book to a student' }]
+}
+
 // Define a schema for validating the incoming form data
 const lendBookSchema = z.object({
 	book_code: z.string().min(1, 'Book ID is required'),

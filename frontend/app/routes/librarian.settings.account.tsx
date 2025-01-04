@@ -1,6 +1,15 @@
 import { AccountForm } from '~/components/account/account-form'
 import { Separator } from '~/components/ui/separator'
 
+export function meta() {
+	return [
+		{ title: 'Account Settings' },
+		{
+			description: 'Advanced form example using react-hook-form and Zod.',
+		},
+	]
+}
+
 export default function SettingsAccountPage() {
 	return (
 		<div className='space-y-6'>

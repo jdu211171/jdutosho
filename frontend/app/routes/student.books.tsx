@@ -11,6 +11,13 @@ import {
 } from '~/services/auth.server'
 import type { BooksResponse, BooksPaginationMeta } from '~/types/books'
 
+export function meta() {
+	return [
+		{ title: 'Books' },
+		{ description: 'List of books available for students' },
+	]
+}
+
 type LoaderData = {
 	data: BooksResponse['data']
 	meta: BooksPaginationMeta

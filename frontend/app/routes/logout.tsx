@@ -4,6 +4,10 @@ import { Form, useSubmit } from '@remix-run/react'
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { logout } from '~/services/auth.server'
 
+export function meta() {
+	return [{ title: 'Logout' }, { description: 'Logout of your account' }]
+}
+
 export async function action({ request }: ActionFunctionArgs) {
 	return await logout(request)
 }
