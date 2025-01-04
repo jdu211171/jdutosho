@@ -6,6 +6,7 @@ export const columns: ColumnDef<User>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Name',
+		enableHiding: true,
 	},
 	{
 		accessorKey: 'loginID',
@@ -17,6 +18,7 @@ export const columns: ColumnDef<User>[] = [
 		cell: ({ row }) => {
 			return row.original.role === 'student' ? 'Student' : 'Librarian'
 		},
+		enableHiding: true,
 	},
 	{
 		id: 'actions',
