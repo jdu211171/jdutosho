@@ -54,25 +54,25 @@ export function DataTable<TData, TValue>({
 	const [search, setSearch] = React.useState(initialSearch)
 
 	React.useEffect(() => {
-  const handleResize = () => {
-    const isMobile = window.innerWidth < 768
-    const newColumnVisibility: VisibilityState = {}
+		const handleResize = () => {
+			const isMobile = window.innerWidth < 768
+			const newColumnVisibility: VisibilityState = {}
 
-    columns.forEach(column => {
-      if ('accessorKey' in column) {
-        // Hide columns that are marked as hideable on mobile
-        newColumnVisibility[column.accessorKey as string] =
-          !isMobile || !column.enableHiding
-      }
-    })
+			columns.forEach(column => {
+				if ('accessorKey' in column) {
+					// Hide columns that are marked as hideable on mobile
+					newColumnVisibility[column.accessorKey as string] =
+						!isMobile || !column.enableHiding
+				}
+			})
 
-    setColumnVisibility(newColumnVisibility)
-  }
+			setColumnVisibility(newColumnVisibility)
+		}
 
-  handleResize() // Initial call
-  window.addEventListener('resize', handleResize)
-  return () => window.removeEventListener('resize', handleResize)
-}, [columns])
+		handleResize() // Initial call
+		window.addEventListener('resize', handleResize)
+		return () => window.removeEventListener('resize', handleResize)
+	}, [columns])
 
 	const table = useReactTable({
 		data,
@@ -108,14 +108,14 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className='space-y-4'>
-	    <DataTableToolbar
-	      table={table}
-	      search={search}
-	      onSearchChange={handleSearchChange}
-	    />
+			<DataTableToolbar
+				table={table}
+				search={search}
+				onSearchChange={handleSearchChange}
+			/>
 			<div className='overflow-x-auto rounded-md border'>
-      <Table>
-        <TableHeader className='hidden md:table-header-group'>
+				<Table>
+					<TableHeader className='hidden md:table-header-group'>
 						{table.getHeaderGroups().map(headerGroup => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map(header => {
@@ -133,40 +133,37 @@ export function DataTable<TData, TValue>({
 							</TableRow>
 						))}
 					</TableHeader>
-		      <TableBody>
-		        {table.getRowModel().rows?.length ? (
-		          table.getRowModel().rows.map(row => (
-		            <TableRow
-		              key={row.id}
-		              data-state={row.getIsSelected() && 'selected'}
-		              className='w-full'
-		            >
-		              {row.getVisibleCells().map(cell => (
-		                <TableCell
-		                  key={cell.id}
-		                  className='py-2 md:py-4'
-		                >
-		                  {flexRender(
-		                    cell.column.columnDef.cell,
-		                    cell.getContext()
-		                  )}
-		                </TableCell>
-		              ))}
-		            </TableRow>
-		          ))
-		        ) : (
-		          <TableRow>
-		            <TableCell
-		              colSpan={columns.length}
-		              className='h-24 text-center'
-		            >
-		              No results.
-		            </TableCell>
-		          </TableRow>
-		        )}
-		      </TableBody>
-		    </Table>
-		  </div>
+					<TableBody>
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map(row => (
+								<TableRow
+									key={row.id}
+									data-state={row.getIsSelected() && 'selected'}
+									className='w-full'
+								>
+									{row.getVisibleCells().map(cell => (
+										<TableCell key={cell.id} className='py-2 md:py-4'>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext()
+											)}
+										</TableCell>
+									))}
+								</TableRow>
+							))
+						) : (
+							<TableRow>
+								<TableCell
+									colSpan={columns.length}
+									className='h-24 text-center'
+								>
+									No results.
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
+			</div>
 			{onPageChange && pageCount > 1 && (
 				<DataTablePagination
 					table={table}
