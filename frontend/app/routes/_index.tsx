@@ -11,6 +11,7 @@ import { ModeToggle } from '~/components/mode-toggle'
 import { Menu } from 'lucide-react'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger } from '~/components/ui/sheet'
+import { Footer } from '~/components/Footer'
 
 export function meta() {
 	return [
@@ -78,7 +79,7 @@ export default function Index() {
 			</header>
 
 			{/* Main Content */}
-			<main className='flex-grow flex items-center justify-center w-full'>
+			<main className='flex-grow'>
 				<div className='container mx-auto px-4 py-8 md:py-10'>
 					{/* Hero Section */}
 					<section className='mb-12'>
@@ -159,6 +160,7 @@ export default function Index() {
 					</section>
 				</div>
 			</main>
+			<Footer />
 		</div>
 	)
 }

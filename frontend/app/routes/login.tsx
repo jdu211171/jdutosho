@@ -21,6 +21,7 @@ import type { SessionData } from '~/types/auth'
 import { createUserSession } from '~/services/auth.server'
 import { api } from '~/lib/api'
 import { ArrowLeft } from 'lucide-react'
+import { Footer } from '~/components/Footer'
 
 export function meta() {
 	return [{ title: 'Login' }, { description: 'Login to your account' }]
@@ -120,6 +121,7 @@ export default function LoginPage() {
 								required
 								id='password'
 								type='password'
+								placeholder='Enter password'
 							/>
 							{errors.password && (
 								<p className='text-sm text-red-500'>
