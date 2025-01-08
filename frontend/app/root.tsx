@@ -30,17 +30,9 @@ export const links: LinksFunction = () => [
 ]
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const [{ getTheme }, token] = await Promise.all([
-		themeSessionResolver(request),
-		getAuthToken(request),
-	])
-
+	const { getTheme } = await themeSessionResolver(request)
 	return {
 		theme: getTheme(),
-		ENV: {
-			API_URL: process.env.API_URL,
-		},
-		token,
 	}
 }
 
