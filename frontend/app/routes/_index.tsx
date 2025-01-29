@@ -160,7 +160,7 @@ export default function Index() {
 					</section>
 				</div>
 			</main>
-			<Footer />
+			{/* <Footer /> */}
 		</div>
 	)
 }
