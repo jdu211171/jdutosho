@@ -55,9 +55,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	})
 }
 
+type ActionData = {
+	error?: string
+}
+
 export default function EditBookCategoryPage() {
 	const { category } = useLoaderData<typeof loader>()
-	const actionData = useActionData<typeof action>()
+	const actionData = useActionData<ActionData>()
 	const navigate = useNavigate()
 
 	if (actionData?.error) {
