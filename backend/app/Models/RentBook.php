@@ -12,7 +12,6 @@ class RentBook extends Model
         'taken_by',
         'given_by',
         'book_id',
-        'book_code_id',
         'given_date',
         'return_date',
         'accepted_by'
@@ -43,4 +42,10 @@ class RentBook extends Model
     {
         return $this->belongsTo(Book::class, 'book_id');
     }
+
+    public function acceptedBy()
+    {
+        return $this->belongsTo(User::class, 'accepted_by');
+    }
 }
+

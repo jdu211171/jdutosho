@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class UserListResource extends BaseResource
+class UserCollection extends ResourceCollection
 {
     /**
      * Transform the resource collection into an array.
@@ -14,9 +14,6 @@ class UserListResource extends BaseResource
      */
     public function toArray(Request $request): array
     {
-        return [
-            'id' => $this->id,
-            'loginID' => $this->loginID,
-        ];
+        return parent::toArray($request);
     }
 }
