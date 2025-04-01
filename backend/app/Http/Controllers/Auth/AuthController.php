@@ -99,13 +99,23 @@ class AuthController extends Controller
     public function handleProviderCallback($provider)
     {
         $providerUser = Socialite::driver($provider)->stateless()->user();
-        $existingUser = User::where('email', $providerUser->getEmail())->first();
+        $email = $providerUser->getEmail();
+
+        // Check if email domain is jdu.uz
+        if (!$this->isValidEmailDomain($email)) {
+            return response()->json([
+                'message' => 'Registration failed. Only @jdu.uz email domains are allowed for Google authentication.',
+                'status' => 'error'
+            ], 403);
+        }
+
+        $existingUser = User::where('email', $email)->first();
 
         if (!$existingUser) {
             $existingUser = User::create([
                 'username' => 'google_'.Str::random(6),
                 'full_name' => $providerUser->getName() ?? 'Google User',
-                'email' => $providerUser->getEmail(),
+                'email' => $email,
                 'role' => 'student',
                 'password' => Hash::make('password'),
             ]);
@@ -118,6 +128,21 @@ class AuthController extends Controller
             'user' => $existingUser,
             'token' => $token
         ], 200);
+    }
+
+    /**
+     * Check if the email has a valid domain (@jdu.uz)
+     *
+     * @param string|null $email
+     * @return bool
+     */
+    private function isValidEmailDomain(?string $email): bool
+    {
+        if (!$email) {
+            return false;
+        }
+
+        return Str::endsWith(strtolower($email), '@jdu.uz');
     }
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse
