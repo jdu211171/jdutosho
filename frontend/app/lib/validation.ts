@@ -1,18 +1,20 @@
 import { z } from 'zod'
 
 export const loginSchema = z.object({
-	loginID: z.string().min(1, 'Login ID is required'),
+	loginID: z.string().min(1, 'Username or email is required'),
 	password: z.string().min(1, 'Password is required'),
 })
 
 export const registerSchema = z
 	.object({
-		name: z.string().min(1, 'Name is required'),
-		loginID: z.string().min(1, 'Username is required'),
-		password: z.string().min(4, 'Password must be at least 4 characters long'),
+		full_name: z.string().min(1, 'Full name is required'),
+		username: z.string().min(1, 'Username is required'),
+		email: z.string().email('Invalid email format').optional().nullable(),
+		password: z.string().min(8, 'Password must be at least 8 characters long'),
 		password_confirmation: z
 			.string()
-			.min(4, 'Confirm Password must be at least 4 characters long'),
+			.min(8, 'Confirm Password must be at least 8 characters long'),
+		role: z.enum(['student', 'librarian', 'admin']).optional().default('student'),
 	})
 	.superRefine((data, ctx) => {
 		if (data.password !== data.password_confirmation) {
