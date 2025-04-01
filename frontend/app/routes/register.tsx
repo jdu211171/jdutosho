@@ -28,12 +28,14 @@ export function meta() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
-  const name = formData.get('name')
-  const username = formData.get('loginID')
+  const full_name = formData.get('full_name')
+  const username = formData.get('username')
+  const email = formData.get('email') || null
   const password = formData.get('password')
   const password_confirmation = formData.get('password_confirmation')
+  const role = formData.get('role') || 'student'
 
-  if (!name || !username || !password || !password_confirmation) {
+  if (!full_name || !username || !password || !password_confirmation) {
     return json(
       { error: 'Please complete all required fields' },
       { status: 400 }
@@ -48,10 +50,13 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const response = await api.post<SessionData>('/register', {
-      name,
+    const response = await api.post<SessionData>('/auth/register', {
+      full_name,
       username,
+      email,
       password,
+      password_confirmation,
+      role
     })
 
     const { token, user } = response.data
@@ -78,10 +83,12 @@ export default function RegisterPage() {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: '',
-      loginID: '',
+      full_name: '',
+      username: '',
+      email: '',
       password: '',
       password_confirmation: '',
+      role: 'student',
     },
   })
 
@@ -99,8 +106,8 @@ export default function RegisterPage() {
         <CardHeader>
           <CardTitle className='text-2xl'>Sign Up</CardTitle>
           <CardDescription>
-						Please enter your details below to create your account.
-					</CardDescription>
+            Please enter your details below to create your account.
+          </CardDescription>
           {actionData?.error && (
             <p className='text-sm font-medium text-red-500 dark:text-red-400'>
               {actionData.error}
@@ -110,28 +117,44 @@ export default function RegisterPage() {
         <CardContent>
           <Form method='post' className='grid gap-4'>
             <div className='grid gap-2'>
-              <Label htmlFor='name'>Name</Label>
+              <Label htmlFor='full_name'>Full Name</Label>
               <Input
-                {...register('name')}
+                {...register('full_name')}
                 required
-                id='name'
+                id='full_name'
+                name='full_name'
                 placeholder='John Doe'
               />
-              {errors.name && (
-                <p className='text-sm text-red-500'>{errors.name.message}</p>
+              {errors.full_name && (
+                <p className='text-sm text-red-500'>{errors.full_name.message}</p>
               )}
             </div>
 
             <div className='grid gap-2'>
-              <Label htmlFor='loginID'>Username</Label>
+              <Label htmlFor='username'>Username</Label>
               <Input
-                {...register('loginID')}
+                {...register('username')}
                 required
-                id='loginID'
+                id='username'
+                name='username'
                 placeholder='johndoe'
               />
-              {errors.loginID && (
-                <p className='text-sm text-red-500'>{errors.loginID.message}</p>
+              {errors.username && (
+                <p className='text-sm text-red-500'>{errors.username.message}</p>
+              )}
+            </div>
+
+            <div className='grid gap-2'>
+              <Label htmlFor='email'>Email (optional)</Label>
+              <Input
+                {...register('email')}
+                id='email'
+                name='email'
+                type='email'
+                placeholder='john.doe@example.com'
+              />
+              {errors.email && (
+                <p className='text-sm text-red-500'>{errors.email.message}</p>
               )}
             </div>
 
@@ -141,6 +164,7 @@ export default function RegisterPage() {
                 {...register('password')}
                 required
                 id='password'
+                name='password'
                 type='password'
                 placeholder='Enter password'
               />
@@ -155,6 +179,7 @@ export default function RegisterPage() {
                 {...register('password_confirmation')}
                 required
                 id='password_confirmation'
+                name='password_confirmation'
                 type='password'
                 placeholder='Confirm password'
               />
@@ -163,11 +188,14 @@ export default function RegisterPage() {
               )}
             </div>
 
+            <input type="hidden" name="role" value="student" />
+
             <Button type='submit' className='w-full' disabled={isSubmitting}>
               {isSubmitting ? 'Signing up...' : 'Sign Up'}
             </Button>
 
-            <Button variant='outline' className='w-full'>
+            <Button variant='outline' className='w-full' type="button"
+              onClick={() => window.location.href = `${api.defaults.baseURL}/auth/redirect/google`}>
               Sign up with Google
             </Button>
 

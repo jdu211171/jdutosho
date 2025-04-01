@@ -40,10 +40,13 @@ export async function action({ request }: ActionFunctionArgs) {
 	}
 
 	try {
-		const response = await api.post<SessionData>('/login', {
-			loginID,
-			password,
-		})
+		// Check if loginID is an email or username
+		const isEmail = loginID.toString().includes('@')
+		const payload = isEmail
+			? { email: loginID, password }
+			: { username: loginID, password }
+
+		const response = await api.post<SessionData>('/auth/login', payload)
 
 		const { token, user } = response.data
 		return createUserSession(token, user)
@@ -147,3 +150,4 @@ export default function LoginPage() {
 		</div>
 	)
 }
+
