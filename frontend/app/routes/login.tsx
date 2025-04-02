@@ -9,22 +9,35 @@ import {
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Form, Link, useNavigation } from '@remix-run/react'
-import type { ActionFunctionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { isAxiosError } from 'axios'
-import { useActionData, useNavigate } from 'react-router'
+import { useActionData, useLoaderData, useNavigate } from 'react-router'
 import type { LoginFormData } from '~/lib/validation'
 import { loginSchema } from '~/lib/validation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { SessionData } from '~/types/auth'
 import { createUserSession } from '~/services/auth.server'
-import { api } from '~/lib/api'
+import { API_BASE_URL, api } from '~/lib/api'
 import { ArrowLeft } from 'lucide-react'
 import { Footer } from '~/components/Footer'
+import { useIsomorphicLayoutEffect } from '~/utils/client-only-effects'
 
 export function meta() {
 	return [{ title: 'Login' }, { description: 'Login to your account' }]
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+	// Check for any error messages passed in the URL
+	const url = new URL(request.url);
+	const error = url.searchParams.get('error');
+
+	if (error) {
+		return json({ error });
+	}
+
+	return json({});
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -63,6 +76,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function LoginPage() {
 	const actionData = useActionData() as { error?: string }
+	const loaderData = useLoaderData() as { error?: string }
 	const navigation = useNavigation()
 	const navigate = useNavigate()
 	const isSubmitting = navigation.state === 'submitting'
@@ -76,6 +90,11 @@ export default function LoginPage() {
 			password: '',
 		},
 	})
+
+	const handleGoogleLogin = () => {
+		 window.location.href = `${API_BASE_URL}/auth/redirect/google`;
+	}
+
 	return (
 		<div className='relative flex h-screen w-full items-center justify-center px-4'>
 			<Button
@@ -92,9 +111,9 @@ export default function LoginPage() {
 					<CardDescription>
 						Enter your login ID below to access your account
 					</CardDescription>
-					{actionData?.error && (
+					{(actionData?.error || loaderData?.error) && (
 						<p className='text-sm font-medium text-red-500 dark:text-red-400'>
-							{actionData.error}
+							{actionData?.error || loaderData?.error}
 						</p>
 					)}
 				</CardHeader>
@@ -135,7 +154,12 @@ export default function LoginPage() {
 						<Button type='submit' className='w-full' disabled={isSubmitting}>
 							{isSubmitting ? 'Logging in...' : 'Login'}
 						</Button>
-						<Button variant='outline' className='w-full'>
+						<Button
+							type="button"
+							variant='outline'
+							className='w-full'
+							onClick={handleGoogleLogin}
+						>
 							Login with Google
 						</Button>
 						<div className='mt-4 text-center text-sm'>

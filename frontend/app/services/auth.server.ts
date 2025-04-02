@@ -1,38 +1,34 @@
 import { createCookieSessionStorage, redirect } from '@remix-run/node'
-import type { SessionData, SessionFlashData, User } from '~/types/auth'
+import type { User } from '~/types/auth'
 import { isAxiosError } from 'axios'
 import { api } from '~/lib/api'
 
-const isProduction = process.env.NODE_ENV === 'production'
-
-if (!process.env.SESSION_SECRET) {
+const sessionSecret = process.env.SESSION_SECRET
+if (!sessionSecret) {
 	throw new Error('SESSION_SECRET must be set')
 }
 
-const authSessionStorage = createCookieSessionStorage<
-	SessionData,
-	SessionFlashData
->({
+const storage = createCookieSessionStorage({
 	cookie: {
-		name: 'auth_session',
-		httpOnly: true,
-		maxAge: 60 * 60 * 24 * 30,
+		name: 'app_session',
+		maxAge: 60 * 60 * 24 * 30, // 30 days
 		path: '/',
 		sameSite: 'lax',
-		secrets: [process.env.SESSION_SECRET],
-		secure: isProduction,
+		// httpOnly: true,
+		secrets: [sessionSecret],
+		secure: process.env.NODE_ENV === 'production',
 	},
 })
 
 async function handleApiError(error: unknown, request: Request) {
 	if (isAxiosError(error)) {
 		if (error.response?.status === 401) {
-			const session = await authSessionStorage.getSession(
-				request.headers.get('Cookie')
+			const session = await storage.getSession(
+				request.headers.get('Cookie'),
 			)
 			throw redirect('/login', {
 				headers: {
-					'Set-Cookie': await authSessionStorage.destroySession(session),
+					'Set-Cookie': await storage.destroySession(session),
 				},
 			})
 		}
@@ -44,7 +40,7 @@ async function handleApiError(error: unknown, request: Request) {
 
 export async function makeAuthenticatedRequest<T>(
 	request: Request,
-	apiCall: () => Promise<T>
+	apiCall: () => Promise<T>,
 ): Promise<T> {
 	try {
 		return await apiCall()
@@ -55,22 +51,54 @@ export async function makeAuthenticatedRequest<T>(
 }
 
 export async function createUserSession(token: string, user: User) {
-	const session = await authSessionStorage.getSession()
+	const session = await storage.getSession()
 	session.set('token', token)
 	session.set('user', user)
 
-	const redirectTo = user.role === 'librarian' ? '/librarian' : '/student'
+	const redirectTo = user.role === 'student'
+		? '/student'
+		: '/librarian'
 
 	return redirect(redirectTo, {
 		headers: {
-			'Set-Cookie': await authSessionStorage.commitSession(session),
+			'Set-Cookie': await storage.commitSession(session),
 		},
 	})
 }
 
+export async function getUserSession(request: Request) {
+	return storage.getSession(request.headers.get('Cookie'))
+}
+
+export async function getUserToken(request: Request) {
+	const session = await getUserSession(request)
+	const token = session.get('token')
+	if (!token) return null
+	return token
+}
+
+export async function getUserInfo(request: Request) {
+	const session = await getUserSession(request)
+	const user = session.get('user')
+	if (!user) return null
+	return user
+}
+
+export async function requireUserSession(request: Request) {
+	const session = await getUserSession(request)
+	const token = session.get('token')
+	const user = session.get('user')
+
+	if (!token || !user) {
+		throw redirect('/login')
+	}
+
+	return { token, user }
+}
+
 export async function getUserFromSession(request: Request) {
-	const session = await authSessionStorage.getSession(
-		request.headers.get('Cookie')
+	const session = await storage.getSession(
+		request.headers.get('Cookie'),
 	)
 
 	const token = session.get('token')
@@ -80,6 +108,7 @@ export async function getUserFromSession(request: Request) {
 
 	return { token, user }
 }
+
 
 export async function requireUser(request: Request) {
 	const userSession = await getUserFromSession(request)
@@ -118,20 +147,18 @@ export async function requireStudentUser(request: Request) {
 }
 
 export async function logout(request: Request) {
-	const session = await authSessionStorage.getSession(
-		request.headers.get('Cookie')
-	)
-
+	const session = await getUserSession(request)
 	return redirect('/login', {
 		headers: {
-			'Set-Cookie': await authSessionStorage.destroySession(session),
+			'Set-Cookie': await storage.destroySession(session),
 		},
 	})
 }
 
 export async function getAuthToken(request: Request) {
-	const session = await authSessionStorage.getSession(
-		request.headers.get('Cookie')
+	const session = await storage.getSession(
+		request.headers.get('Cookie'),
 	)
 	return session.get('token')
 }
+

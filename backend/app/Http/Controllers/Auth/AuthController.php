@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -93,41 +94,59 @@ class AuthController extends Controller
 
     public function redirectToProvider($provider)
     {
-        return Socialite::driver($provider)->stateless()->redirect();
+        // Validate the provider is one we support
+        if (!in_array($provider, ['google'])) {
+            return response()->json(['message' => 'Unsupported provider'], 400);
+        }
+
+        try {
+            // Replace returning JSON with a direct redirect
+            return Socialite::driver($provider)->stateless()->redirect();
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Could not generate OAuth URL'], 500);
+        }
     }
 
-    public function handleProviderCallback($provider)
+    public function handleProviderCallback($provider, Request $request)
     {
-        $providerUser = Socialite::driver($provider)->stateless()->user();
-        $email = $providerUser->getEmail();
+        try {
+            $providerUser = Socialite::driver($provider)->stateless()->user();
+            $email = $providerUser->getEmail();
 
-        // Check if email domain is jdu.uz
-        if (!$this->isValidEmailDomain($email)) {
-            return response()->json([
-                'message' => 'Registration failed. Only @jdu.uz email domains are allowed for Google authentication.',
-                'status' => 'error'
-            ], 403);
+            // Check if email domain is jdu.uz
+            if (!$this->isValidEmailDomain($email)) {
+                return response()->json([
+                    'message' => 'Registration failed. Only @jdu.uz email domains are allowed for Google authentication.',
+                    'status' => 'error'
+                ], 403);
+            }
+
+            $existingUser = User::where('email', $email)->first();
+            if (!$existingUser) {
+                $existingUser = User::create([
+                    'username' => 'google_' . Str::random(6),
+                    'full_name' => $providerUser->getName() ?? 'Google User',
+                    'email' => $email,
+                    'role' => 'student',
+                    'password' => Hash::make('password'),
+                ]);
+            }
+
+            $token = $existingUser->createToken('API Token')->plainTextToken;
+
+            // Get frontend URL from config or env with fallback
+            $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+
+            // Encode user data for URL
+            $encodedUser = base64_encode(json_encode($existingUser));
+
+            // Redirect to frontend with token and user data in the query parameters
+            return redirect()->away("{$frontendUrl}/oauth-callback?token={$token}&user={$encodedUser}&provider={$provider}");
+        } catch (\Exception $e) {
+            // In case of error, redirect to frontend with error message
+            $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+            return redirect()->away("{$frontendUrl}/login?error=Authentication%20failed:%20" . urlencode($e->getMessage()));
         }
-
-        $existingUser = User::where('email', $email)->first();
-
-        if (!$existingUser) {
-            $existingUser = User::create([
-                'username' => 'google_'.Str::random(6),
-                'full_name' => $providerUser->getName() ?? 'Google User',
-                'email' => $email,
-                'role' => 'student',
-                'password' => Hash::make('password'),
-            ]);
-        }
-
-        $token = $existingUser->createToken('API Token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login successful',
-            'user' => $existingUser,
-            'token' => $token
-        ], 200);
     }
 
     /**
