@@ -1,8 +1,8 @@
 export interface User {
 	id: number
-	loginID: string
-	name: string
-	role: 'student' | 'librarian'
+	username: string
+	full_name: string
+	role: 'student' | 'librarian' | 'admin' | 'teacher'
 	email: string
 	avatar?: string
 }

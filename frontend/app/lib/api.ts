@@ -1,8 +1,11 @@
 import axios from 'axios'
 
+// Define API base URL
+export const API_BASE_URL = 'http://localhost:8000/api'
+// export const API_BASE_URL = 'https://jdutosho.uz/api'
+
 export const api = axios.create({
-	baseURL: 'http://localhost:8000/api',
-	// baseURL: 'https://jdutosho.uz/api',
+	baseURL: API_BASE_URL,
 	withCredentials: true,
 	headers: {
 		'Content-Type': 'application/json',
