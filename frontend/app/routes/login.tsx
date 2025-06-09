@@ -29,19 +29,19 @@ export function meta() {
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
-	const loginID = formData.get('loginID')
+	const username = formData.get('username')
 	const password = formData.get('password')
 
-	if (!loginID || !password) {
+	if (!username || !password) {
 		return json(
-			{ error: 'Please enter your login ID and password' },
+			{ error: 'Please enter your username and password' },
 			{ status: 400 }
 		)
 	}
 
 	try {
-		const response = await api.post<SessionData>('/login', {
-			loginID,
+		const response = await api.post<SessionData>('/auth/login', {
+			username,
 			password,
 		})
 
@@ -69,7 +69,7 @@ export default function LoginPage() {
 	} = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
 		defaultValues: {
-			loginID: '',
+			username: '',
 			password: '',
 		},
 	})
@@ -87,7 +87,7 @@ export default function LoginPage() {
 				<CardHeader>
 					<CardTitle className='text-2xl'>Login</CardTitle>
 					<CardDescription>
-						Enter your login ID below to access your account
+						Enter your username below to access your account
 					</CardDescription>
 					{actionData?.error && (
 						<p className='text-sm font-medium text-red-500 dark:text-red-400'>
@@ -98,15 +98,15 @@ export default function LoginPage() {
 				<CardContent>
 					<Form method='post' className='grid gap-4'>
 						<div className='grid gap-2'>
-							<Label htmlFor='loginID'>Login ID</Label>
+							<Label htmlFor='username'>Username</Label>
 							<Input
-								{...register('loginID')}
+								{...register('username')}
 								required
-								id='loginID'
-								placeholder='Enter your login ID'
+								id='username'
+								placeholder='Enter your username'
 							/>
-							{errors.loginID && (
-								<p className='text-sm text-red-500'>{errors.loginID.message}</p>
+							{errors.username && (
+								<p className='text-sm text-red-500'>{errors.username.message}</p>
 							)}
 						</div>
 						<div className='grid gap-2'>
