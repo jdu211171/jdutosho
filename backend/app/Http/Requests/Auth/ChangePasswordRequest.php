@@ -16,12 +16,11 @@ class ChangePasswordRequest extends FormRequest
     {
         $user = $this->user();
 
-        // Check if this is a Google user with default password
-        $isFirstTimeGoogleUser = str_starts_with($user->username, 'google_') &&
-                                 Hash::check('password', $user->password);
+        // Check if user needs to set password for the first time
+        $isFirstTime = !$user->has_set_password;
 
-        // For first-time Google users, current_password is not required
-        if ($isFirstTimeGoogleUser) {
+        // For first-time users, current_password is not required
+        if ($isFirstTime) {
             return [
                 'new_password' => 'required|string|min:8|confirmed',
                 'new_password_confirmation' => 'required|string|min:8',

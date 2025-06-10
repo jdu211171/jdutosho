@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
+            'has_set_password' => true,
         ]);
 
         User::factory()->create([
@@ -28,6 +29,7 @@ class UserSeeder extends Seeder
             'email' => 'librarian@example.com',
             'password' => Hash::make('password'),
             'role' => 'librarian',
+            'has_set_password' => true,
         ]);
 
         User::factory()->create([
@@ -36,6 +38,7 @@ class UserSeeder extends Seeder
             'email' => 'teacher@example.com',
             'password' => Hash::make('password'),
             'role' => 'teacher',
+            'has_set_password' => true,
         ]);
 
         User::factory()->create([
@@ -44,6 +47,17 @@ class UserSeeder extends Seeder
             'email' => 'student@example.com',
             'password' => Hash::make('password'),
             'role' => 'student',
+            'has_set_password' => true,
+        ]);
+
+        // Create a test Google user who needs to set password
+        User::factory()->create([
+            'username' => 'google_test123',
+            'full_name' => 'Google Test User',
+            'email' => 'google.test@jdu.uz',
+            'password' => Hash::make('password'),
+            'role' => 'student',
+            'has_set_password' => false, // This user needs to set password
         ]);
 
         User::factory()->count(5)->librarian()->create();

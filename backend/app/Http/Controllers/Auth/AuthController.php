@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -64,13 +65,43 @@ class AuthController extends Controller
 
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        // Rate limiting: Allow only 5 requests per hour per IP
+        $key = 'forgot_password_' . $request->ip();
+        if (cache()->has($key) && cache()->get($key) >= 5) {
+            return response()->json([
+                'message' => 'Too many password reset attempts. Please try again later.'
+            ], 429);
+        }
 
-        return $status === Password::RESET_LINK_SENT
-            ? response()->json(['message' => 'Reset link sent to your email'], 200)
-            : response()->json(['message' => 'Unable to send reset link'], 400);
+        // Increment rate limit counter first
+        $attempts = cache()->get($key, 0) + 1;
+        cache()->put($key, $attempts, now()->addHour());
+
+        // Check if user exists with this email
+        $user = User::where('email', $request->email)->first();
+        
+        if ($user) {
+            // User exists - send actual reset email
+            try {
+                $status = Password::sendResetLink(
+                    $request->only('email')
+                );
+                
+                // Log successful email send for debugging (optional)
+                \Log::info("Password reset email sent to: " . $request->email);
+            } catch (\Exception $e) {
+                // Log the error for debugging but still return success message
+                \Log::error('Password reset email failed: ' . $e->getMessage());
+            }
+        } else {
+            // User doesn't exist - don't send email but log the attempt
+            \Log::warning("Password reset attempted for non-existent email: " . $request->email);
+        }
+
+        // Always return the same success message regardless of whether user exists
+        return response()->json([
+            'message' => 'If this email is registered, a reset link has been sent to your email address.'
+        ], 200);
     }
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
@@ -93,12 +124,46 @@ class AuthController extends Controller
 
     public function redirectToProvider($provider)
     {
-        return Socialite::driver($provider)->stateless()->redirect();
+        return Socialite::driver($provider)->redirect();
+    }
+
+    /**
+     * Get OAuth URL for API clients (returns JSON instead of redirect)
+     */
+    public function getOAuthUrl($provider)
+    {
+        $url = Socialite::driver($provider)->redirect()->getTargetUrl();
+        
+        return response()->json([
+            'oauth_url' => $url,
+            'provider' => $provider
+        ]);
+    }
+
+    /**
+     * Get current user profile with setup status
+     */
+    public function profile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'full_name' => $user->full_name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'has_set_password' => $user->has_set_password,
+                'is_google_user' => str_starts_with($user->username, 'google_'),
+                'needs_password_setup' => !$user->has_set_password,
+            ]
+        ]);
     }
 
     public function handleProviderCallback($provider)
     {
-        $providerUser = Socialite::driver($provider)->stateless()->user();
+        $providerUser = Socialite::driver($provider)->user();
         $email = $providerUser->getEmail();
 
         // Check if email domain is jdu.uz
@@ -118,6 +183,7 @@ class AuthController extends Controller
                 'email' => $email,
                 'role' => 'student',
                 'password' => Hash::make('password'),
+                'has_set_password' => false, // Google users need to set their password
             ]);
         }
 
@@ -148,11 +214,10 @@ class AuthController extends Controller
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
         $user = $request->user();
-        $isGoogleUser = str_starts_with($user->username, 'google_');
-        $isFirstTimeGoogleUser = $isGoogleUser && Hash::check('password', $user->password);
+        $isFirstTime = !$user->has_set_password;
 
-        // For first-time Google users, no current_password check needed
-        if (!$isFirstTimeGoogleUser) {
+        // For first-time users, no current_password check needed
+        if (!$isFirstTime) {
             // All other users must provide correct current password
             if (!Hash::check($request->current_password, $user->password)) {
                 return response()->json([
@@ -171,11 +236,12 @@ class AuthController extends Controller
         }
 
         $user->password = Hash::make($request->new_password);
+        $user->has_set_password = true; // Mark as password has been set
         $user->save();
 
         return response()->json([
             'message' => 'Password changed successfully',
-            'is_first_time' => $isFirstTimeGoogleUser
+            'is_first_time' => $isFirstTime
         ], 200);
     }
 }

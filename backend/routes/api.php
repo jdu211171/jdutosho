@@ -14,10 +14,12 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+    Route::get('/profile', [AuthController::class, 'profile'])->middleware('auth:sanctum');
     Route::post('/change-password', [AuthController::class, 'changePassword'])->middleware('auth:sanctum');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::get('/redirect/{provider}', [AuthController::class, 'redirectToProvider']);
+    Route::get('/oauth-url/{provider}', [AuthController::class, 'getOAuthUrl']);
     Route::get('/callback/{provider}', [AuthController::class, 'handleProviderCallback']);
 });
 
