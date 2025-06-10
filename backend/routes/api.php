@@ -47,13 +47,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::delete('/{id}', 'destroy');
         });
         Route::prefix('/users')->controller(UserController::class)->group(function () {
-            Route::get('/', 'index');
+            Route::get('/', 'index'); // Now supports ?role=student&search=query filtering
             Route::post('/', 'store');
-            Route::get('/list', 'studentList');
-            Route::get('/{id}/student', 'studentShow');
-            Route::get('/{id}', 'show');
-            Route::put('/{id}', 'update');
-            Route::delete('/{id}', 'destroy');
+            Route::get('/{user}', 'show'); // Generic route for any user
+            Route::put('/{user}', 'update');
+            Route::delete('/{user}', 'destroy');
         });
         Route::prefix('/rents')->controller(RentController::class)->group(function () {
             Route::get('/', 'index');
