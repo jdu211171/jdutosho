@@ -52,3 +52,16 @@ export interface BookFormValues {
 	category?: string
 	codes?: string[]
 }
+
+export interface BookSearchParams {
+	search?: string
+	language?: 'uz' | 'ru' | 'en' | 'ja'
+	category?: number
+	author?: string
+	available?: boolean
+	status?: 'exist' | 'lost' | 'pending' | 'rent'
+	code?: string
+	view?: 'codes'
+	per_page?: number
+	page?: number
+}

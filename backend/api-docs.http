@@ -321,20 +321,38 @@ Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{token}}
 
-### Get Available Book Codes
-GET {{baseUrl}}/books/available-codes
+### Search Books by Code
+GET {{baseUrl}}/books?code=ABC123
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{token}}
 
-### Get Book Codes (Advanced Search)
-GET {{baseUrl}}/books/codes
+### Filter Books by Code Status
+GET {{baseUrl}}/books?status=exist
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Books in Code-Centric View
+GET {{baseUrl}}/books?view=codes
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{token}}
 
 ### Get Book Codes with Search and Status Filter
-GET {{baseUrl}}/books/codes?search=example&status=exist
+GET {{baseUrl}}/books?view=codes&search=CODE123&status=exist
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Book Codes Filtered by Language and Status
+GET {{baseUrl}}/books?view=codes&language=en&status=exist
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Available Book Codes
+GET {{baseUrl}}/books/available-codes
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{token}}

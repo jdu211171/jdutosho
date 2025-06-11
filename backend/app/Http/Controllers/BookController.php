@@ -13,31 +13,6 @@ use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    public function codes(Request $request)
-    {
-        $search = $request->input('search');
-        $searchStatus = $request->input('status');
-
-        $bookCodes = BookCode::query()
-            ->when(in_array($searchStatus, ['exist', 'lost', 'pending', 'rent']), function ($query) use ($searchStatus) {
-                $query->where('status', $searchStatus);
-            })
-            ->with('book')
-            ->when($search !== null, function ($query) use ($search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('code', 'like', "%{$search}%")
-                        ->orWhereHas('book', function ($query) use ($search) {
-                            $query->where('name', 'like', "%{$search}%")
-                                ->orWhere('author', 'like', "%{$search}%");
-                        });
-                });
-            })
-            ->paginate(10);
-
-
-        return BookCodesAdvancedResource::collection($bookCodes);
-    }
-
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -45,13 +20,64 @@ class BookController extends Controller
         $category = $request->input('category');
         $author = $request->input('author');
         $available = $request->input('available'); // filter by availability
+        $status = $request->input('status'); // filter by book code status
+        $code = $request->input('code'); // search by specific book code
+        $view = $request->input('view'); // 'codes' for code-centric view
         $perPage = $request->input('per_page', 10);
 
+        // If requesting code-centric view, return book codes with book info
+        if ($view === 'codes') {
+            $bookCodes = BookCode::query()
+                ->when(in_array($status, ['exist', 'lost', 'pending', 'rent']), function ($query) use ($status) {
+                    $query->where('status', $status);
+                })
+                ->with(['book.category'])
+                ->when($search !== null, function ($query) use ($search) {
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->where('code', 'like', "%{$search}%")
+                            ->orWhereHas('book', function ($bookQuery) use ($search) {
+                                $bookQuery->where('name', 'like', "%{$search}%")
+                                    ->orWhere('author', 'like', "%{$search}%");
+                            });
+                    });
+                })
+                ->when($code !== null, function ($query) use ($code) {
+                    $query->where('code', 'like', "%{$code}%");
+                })
+                ->when($language !== null, function ($query) use ($language) {
+                    $query->whereHas('book', function ($bookQuery) use ($language) {
+                        $bookQuery->where('language', $language);
+                    });
+                })
+                ->when($category !== null, function ($query) use ($category) {
+                    $query->whereHas('book', function ($bookQuery) use ($category) {
+                        $bookQuery->where('category_id', $category);
+                    });
+                })
+                ->when($author !== null, function ($query) use ($author) {
+                    $query->whereHas('book', function ($bookQuery) use ($author) {
+                        $bookQuery->where('author', 'like', "%{$author}%");
+                    });
+                })
+                ->paginate($perPage);
+
+            return BookCodesAdvancedResource::collection($bookCodes);
+        }
+
+        // Default book-centric view
         $books = Book::with(['category', 'codes'])
             ->when($search !== null, function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('author', 'like', "%{$search}%");
+                        ->orWhere('author', 'like', "%{$search}%")
+                        ->orWhereHas('codes', function ($codeQuery) use ($search) {
+                            $codeQuery->where('code', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($code !== null, function ($query) use ($code) {
+                $query->whereHas('codes', function ($codeQuery) use ($code) {
+                    $codeQuery->where('code', 'like', "%{$code}%");
                 });
             })
             ->when($language !== null, function ($query) use ($language) {
@@ -73,6 +99,13 @@ class BookController extends Controller
                     // Only books that have no available copies
                     $query->whereDoesntHave('codes', function ($subQuery) {
                         $subQuery->where('status', 'exist');
+                    });
+                }
+            })
+            ->when($status !== null, function ($query) use ($status) {
+                if (in_array($status, ['exist', 'lost', 'pending', 'rent'])) {
+                    $query->whereHas('codes', function ($subQuery) use ($status) {
+                        $subQuery->where('status', $status);
                     });
                 }
             })

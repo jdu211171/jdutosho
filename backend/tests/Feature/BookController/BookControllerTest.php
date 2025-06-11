@@ -62,14 +62,14 @@ class BookControllerTest extends TestCase
     }
 
     /**
-     * Test retrieving advanced book codes with search and status filter.
+     * Test retrieving book codes with search and status filter using the codes view.
      */
-    public function test_can_get_advanced_book_codes()
+    public function test_can_get_book_codes_view()
     {
         $book = Book::factory()->create();
         BookCode::factory()->create(['book_id' => $book->id, 'code' => 'CODE123', 'status' => 'exist']);
 
-        $response = $this->getJson('/api/books/codes?search=CODE123&status=exist');
+        $response = $this->getJson('/api/books?view=codes&search=CODE123&status=exist');
 
         $response->assertStatus(200)
             ->assertJsonFragment(['code' => 'CODE123']);
@@ -344,5 +344,81 @@ class BookControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonFragment(['id' => $targetBook->id])
             ->assertJsonMissing(['id' => $otherBook->id]);
+    }
+
+    /**
+     * Test searching books by book code.
+     */
+    public function test_can_search_books_by_code()
+    {
+        $category = BookCategory::factory()->create();
+        $book1 = Book::factory()->create(['category_id' => $category->id]);
+        $book2 = Book::factory()->create(['category_id' => $category->id]);
+        
+        BookCode::factory()->create(['book_id' => $book1->id, 'code' => 'ABC123']);
+        BookCode::factory()->create(['book_id' => $book2->id, 'code' => 'XYZ789']);
+
+        $response = $this->getJson('/api/books?code=ABC');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $book1->id])
+            ->assertJsonMissing(['id' => $book2->id]);
+    }
+
+    /**
+     * Test searching books that include code search in general search.
+     */
+    public function test_can_search_books_including_codes()
+    {
+        $category = BookCategory::factory()->create();
+        $book1 = Book::factory()->create(['name' => 'Random Book', 'category_id' => $category->id]);
+        $book2 = Book::factory()->create(['name' => 'Another Book', 'category_id' => $category->id]);
+        
+        BookCode::factory()->create(['book_id' => $book1->id, 'code' => 'SPECIAL123']);
+        BookCode::factory()->create(['book_id' => $book2->id, 'code' => 'NORMAL456']);
+
+        $response = $this->getJson('/api/books?search=SPECIAL');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $book1->id])
+            ->assertJsonMissing(['id' => $book2->id]);
+    }
+
+    /**
+     * Test filtering books by book code status.
+     */
+    public function test_can_filter_books_by_code_status()
+    {
+        $category = BookCategory::factory()->create();
+        $book1 = Book::factory()->create(['category_id' => $category->id]);
+        $book2 = Book::factory()->create(['category_id' => $category->id]);
+        
+        BookCode::factory()->create(['book_id' => $book1->id, 'status' => 'exist']);
+        BookCode::factory()->create(['book_id' => $book2->id, 'status' => 'rent']);
+
+        $response = $this->getJson('/api/books?status=rent');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $book2->id])
+            ->assertJsonMissing(['id' => $book1->id]);
+    }
+
+    /**
+     * Test the codes view with filters.
+     */
+    public function test_can_use_codes_view_with_filters()
+    {
+        $category = BookCategory::factory()->create();
+        $book = Book::factory()->create(['language' => 'en', 'category_id' => $category->id]);
+        $code = BookCode::factory()->create(['book_id' => $book->id, 'code' => 'TEST123', 'status' => 'exist']);
+
+        $response = $this->getJson('/api/books?view=codes&language=en&status=exist');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment([
+                'code' => 'TEST123',
+                'status' => 'exist',
+                'language' => 'en'
+            ]);
     }
 }
