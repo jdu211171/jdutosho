@@ -36,7 +36,7 @@ class BookControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'name', 'author', 'language', 'category_id', 'category', 'count']
+                    '*' => ['id', 'name', 'author', 'language', 'category_id', 'category', 'codes']
                 ],
                 'links',
                 'meta'
@@ -44,13 +44,13 @@ class BookControllerTest extends TestCase
     }
 
     /**
-     * Test retrieving the list of book codes.
+     * Test retrieving the list of available book codes.
      */
-    public function test_can_get_book_codes_list()
+    public function test_can_get_available_book_codes()
     {
         BookCode::factory()->count(5)->create(['status' => 'exist']);
 
-        $response = $this->getJson('/api/books/list');
+        $response = $this->getJson('/api/books/available-codes');
 
         $response->assertStatus(200)
             ->assertJsonCount(5, 'data')
@@ -221,5 +221,128 @@ class BookControllerTest extends TestCase
 
         $response->assertStatus(404)
             ->assertJson(['message' => 'Book not found']);
+    }
+
+    /**
+     * Test filtering books by language.
+     */
+    public function test_can_filter_books_by_language()
+    {
+        $category = BookCategory::factory()->create();
+        $englishBook = Book::factory()->create(['language' => 'en', 'category_id' => $category->id]);
+        $uzbekBook = Book::factory()->create(['language' => 'uz', 'category_id' => $category->id]);
+
+        $response = $this->getJson('/api/books?language=en');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $englishBook->id])
+            ->assertJsonMissing(['id' => $uzbekBook->id]);
+    }
+
+    /**
+     * Test filtering books by category.
+     */
+    public function test_can_filter_books_by_category()
+    {
+        $category1 = BookCategory::factory()->create();
+        $category2 = BookCategory::factory()->create();
+        $book1 = Book::factory()->create(['category_id' => $category1->id]);
+        $book2 = Book::factory()->create(['category_id' => $category2->id]);
+
+        $response = $this->getJson("/api/books?category={$category1->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $book1->id])
+            ->assertJsonMissing(['id' => $book2->id]);
+    }
+
+    /**
+     * Test filtering books by author.
+     */
+    public function test_can_filter_books_by_author()
+    {
+        $category = BookCategory::factory()->create();
+        $book1 = Book::factory()->create(['author' => 'John Doe', 'category_id' => $category->id]);
+        $book2 = Book::factory()->create(['author' => 'Jane Smith', 'category_id' => $category->id]);
+
+        $response = $this->getJson('/api/books?author=John');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $book1->id])
+            ->assertJsonMissing(['id' => $book2->id]);
+    }
+
+    /**
+     * Test filtering books by availability.
+     */
+    public function test_can_filter_books_by_availability()
+    {
+        $category = BookCategory::factory()->create();
+        $availableBook = Book::factory()->create(['category_id' => $category->id]);
+        $unavailableBook = Book::factory()->create(['category_id' => $category->id]);
+        
+        // Create available code for first book
+        BookCode::factory()->create(['book_id' => $availableBook->id, 'status' => 'exist']);
+        
+        // Create only rented codes for second book
+        BookCode::factory()->create(['book_id' => $unavailableBook->id, 'status' => 'rent']);
+
+        // Test filtering for available books
+        $response = $this->getJson('/api/books?available=true');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $availableBook->id])
+            ->assertJsonMissing(['id' => $unavailableBook->id]);
+
+        // Test filtering for unavailable books
+        $response = $this->getJson('/api/books?available=false');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $unavailableBook->id])
+            ->assertJsonMissing(['id' => $availableBook->id]);
+    }
+
+    /**
+     * Test pagination with custom per_page parameter.
+     */
+    public function test_can_paginate_books_with_custom_per_page()
+    {
+        $category = BookCategory::factory()->create();
+        Book::factory()->count(15)->create(['category_id' => $category->id]);
+
+        $response = $this->getJson('/api/books?per_page=5');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(5, 'data')
+            ->assertJsonPath('meta.per_page', 5);
+    }
+
+    /**
+     * Test combined filtering.
+     */
+    public function test_can_combine_multiple_filters()
+    {
+        $category = BookCategory::factory()->create();
+        $targetBook = Book::factory()->create([
+            'name' => 'Test Programming Book',
+            'author' => 'John Developer',
+            'language' => 'en',
+            'category_id' => $category->id
+        ]);
+        $otherBook = Book::factory()->create([
+            'name' => 'Other Book',
+            'author' => 'Jane Author',
+            'language' => 'uz',
+            'category_id' => $category->id
+        ]);
+        
+        BookCode::factory()->create(['book_id' => $targetBook->id, 'status' => 'exist']);
+        BookCode::factory()->create(['book_id' => $otherBook->id, 'status' => 'exist']);
+
+        $response = $this->getJson("/api/books?search=Programming&language=en&author=John&available=true");
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $targetBook->id])
+            ->assertJsonMissing(['id' => $otherBook->id]);
     }
 }

@@ -41,12 +41,43 @@ class BookController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $language = $request->input('language');
+        $category = $request->input('category');
+        $author = $request->input('author');
+        $available = $request->input('available'); // filter by availability
+        $perPage = $request->input('per_page', 10);
 
-        $books = Book::with('category')
+        $books = Book::with(['category', 'codes'])
             ->when($search !== null, function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('author', 'like', "%{$search}%");
-            })->paginate(10);
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('author', 'like', "%{$search}%");
+                });
+            })
+            ->when($language !== null, function ($query) use ($language) {
+                $query->where('language', $language);
+            })
+            ->when($category !== null, function ($query) use ($category) {
+                $query->where('category_id', $category);
+            })
+            ->when($author !== null, function ($query) use ($author) {
+                $query->where('author', 'like', "%{$author}%");
+            })
+            ->when($available !== null, function ($query) use ($available) {
+                if ($available === 'true' || $available === '1') {
+                    // Only books that have at least one available copy
+                    $query->whereHas('codes', function ($subQuery) {
+                        $subQuery->where('status', 'exist');
+                    });
+                } elseif ($available === 'false' || $available === '0') {
+                    // Only books that have no available copies
+                    $query->whereDoesntHave('codes', function ($subQuery) {
+                        $subQuery->where('status', 'exist');
+                    });
+                }
+            })
+            ->paginate($perPage);
+
         return BookResource::collection($books);
     }
 
@@ -158,7 +189,7 @@ class BookController extends Controller
         return new BookResource($book);
     }
 
-    public function list(Request $request)
+    public function availableCodes(Request $request)
     {
         $search = $request->query('search');
 

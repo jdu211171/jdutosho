@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class RentBook extends Model
 {
+    use HasFactory;
+    
     protected $table = 'rent_books';
     protected $fillable = [
         'book_code_id',

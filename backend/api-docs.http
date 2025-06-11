@@ -273,8 +273,56 @@ Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{token}}
 
-### Get All Books (List of Book Codes)
-GET {{baseUrl}}/books/list
+### Get Books with Search
+GET {{baseUrl}}/books?search=programming
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Books by Language
+GET {{baseUrl}}/books?language=en
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Books by Category
+GET {{baseUrl}}/books?category=1
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Books by Author
+GET {{baseUrl}}/books?author=John
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Available Books Only
+GET {{baseUrl}}/books?available=true
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Unavailable Books Only
+GET {{baseUrl}}/books?available=false
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Books with Custom Pagination
+GET {{baseUrl}}/books?per_page=5&page=2
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Books with Combined Filters
+GET {{baseUrl}}/books?search=programming&language=en&available=true&per_page=10
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get Available Book Codes
+GET {{baseUrl}}/books/available-codes
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{token}}
