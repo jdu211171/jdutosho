@@ -116,7 +116,9 @@ class StudentControllerTest extends TestCase
             'return_date' => null
         ]);
 
-        $response = $this->putJson("/api/student/{$rent->id}/return");
+        $response = $this->putJson("/api/student/{$rent->id}/return", [
+            'action' => 'return'
+        ]);
 
         $response->assertStatus(200);
 
@@ -132,7 +134,9 @@ class StudentControllerTest extends TestCase
      */
     public function test_cannot_return_non_existent_rent()
     {
-        $response = $this->putJson('/api/student/9999/return');
+        $response = $this->putJson('/api/student/9999/return', [
+            'action' => 'return'
+        ]);
 
         $response->assertStatus(404)
             ->assertJson(['message' => 'Rent not found']);
@@ -165,7 +169,9 @@ class StudentControllerTest extends TestCase
             'return_date' => null
         ]);
 
-        $response = $this->putJson("/api/student/{$rent->id}/return");
+        $response = $this->putJson("/api/student/{$rent->id}/return", [
+            'action' => 'return'
+        ]);
 
         $response->assertStatus(404)
             ->assertJson(['message' => 'Rent not found']);

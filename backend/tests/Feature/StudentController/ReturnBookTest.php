@@ -21,7 +21,9 @@ class ReturnBookTest extends TestCase
             'return_date' => null
         ]);
 
-        $response = $this->putJson("/api/student/{$rent->id}/return");
+        $response = $this->putJson("/api/student/{$rent->id}/return", [
+            'action' => 'return'
+        ]);
         $response->assertStatus(200)
                  ->assertJsonPath('data.id', $rent->id);
     }
@@ -31,9 +33,41 @@ class ReturnBookTest extends TestCase
         $student = User::factory()->create(['role' => 'student']);
         Sanctum::actingAs($student);
 
-        $response = $this->putJson('/api/student/9999/return');
+        $response = $this->putJson('/api/student/9999/return', [
+            'action' => 'return'
+        ]);
         $response->assertStatus(404)
                  ->assertJson(['message' => 'Rent not found']);
+    }
+
+    public function test_requires_action_parameter()
+    {
+        $student = User::factory()->create(['role' => 'student']);
+        Sanctum::actingAs($student);
+        $rent = RentBook::factory()->create([
+            'taken_by' => $student->id,
+            'return_date' => null
+        ]);
+
+        $response = $this->putJson("/api/student/{$rent->id}/return", []);
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['action']);
+    }
+
+    public function test_validates_action_value()
+    {
+        $student = User::factory()->create(['role' => 'student']);
+        Sanctum::actingAs($student);
+        $rent = RentBook::factory()->create([
+            'taken_by' => $student->id,
+            'return_date' => null
+        ]);
+
+        $response = $this->putJson("/api/student/{$rent->id}/return", [
+            'action' => 'invalid_action'
+        ]);
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['action']);
     }
 }
 

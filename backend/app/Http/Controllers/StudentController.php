@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StudentReturnRequest;
 use App\Http\Resources\BookResource;
 use App\Http\Resources\RentResource;
 use App\Http\Resources\StudentBookListResource;
@@ -63,8 +64,10 @@ class StudentController extends Controller
         ]);
     }
 
-    public function returnBook($id)
+    public function returnBook(StudentReturnRequest $request, $id)
     {
+        $validated = $request->validated();
+        
         $rent = RentBook::with(['takenBy', 'givenBy', 'bookCode', 'book'])
             ->where('id', $id)
             ->where('taken_by', auth()->user()->id)
@@ -75,10 +78,15 @@ class StudentController extends Controller
             return response()->json(['message' => 'Rent not found'], 404);
         }
 
-        $rent->bookCode->status = 'pending';
-        $rent->bookCode->save();
+        // Handle return action
+        if ($validated['action'] === 'return') {
+            $rent->bookCode->status = 'pending';
+            $rent->bookCode->save();
 
-        return new RentResource($rent);
+            return new RentResource($rent);
+        }
+
+        return response()->json(['message' => 'Invalid action'], 400);
     }
     public function bookList(Request $request)
     {

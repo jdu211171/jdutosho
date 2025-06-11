@@ -42,7 +42,9 @@ export async function action({ request }: ActionFunctionArgs) {
 	const bookId = formData.get('bookId')
 
 	return await makeAuthenticatedRequest(request, async () => {
-		const response = await api.put(`/student/${bookId}/return`, null)
+		const response = await api.put(`/student/${bookId}/return`, {
+			action: 'return'
+		})
 		return json({ success: response.status === 200 })
 	})
 }
