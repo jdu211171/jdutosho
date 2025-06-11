@@ -11,10 +11,29 @@ use Illuminate\Http\Request;
 
 class BookCategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $book_categories = BookCategory::withCount('books')
-        ->paginate(10);
+        $search = $request->input('search');
+        $query = $request->input('query'); // Support both 'search' and 'query' parameters
+        $perPage = $request->input('per_page', 10);
+        $list = $request->input('list'); // Support list format (no pagination)
+
+        // Use either search or query parameter
+        $searchTerm = $search ?? $query;
+
+        $bookCategoriesQuery = BookCategory::withCount('books')
+            ->when($searchTerm, function ($query) use ($searchTerm) {
+                return $query->where('name', 'like', "%{$searchTerm}%");
+            });
+
+        // If list parameter is present, return all without pagination
+        if ($list !== null) {
+            $book_categories = $bookCategoriesQuery->get();
+            return BookCategoryListResource::collection($book_categories);
+        }
+
+        // Default paginated response
+        $book_categories = $bookCategoriesQuery->paginate($perPage);
         return BookCategoryResource::collection($book_categories);
     }
 
@@ -76,24 +95,5 @@ class BookCategoryController extends Controller
         return response()->json([
             'message' => 'Book category deleted'
         ], 200);
-    }
-
-    public function list()
-    {
-        $book_categories = BookCategory::all();
-        return BookCategoryListResource::collection($book_categories);
-    }
-
-    public function search(Request $request)
-    {
-        $search = $request->input('query');
-
-        $categories = BookCategory::withCount('books')
-            ->when($search, function ($query) use ($search) {
-                return $query->where('name', 'like', "%$search%");
-            })
-            ->paginate(10);
-
-        return BookCategoryListResource::collection($categories);
     }
 }

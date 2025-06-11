@@ -35,7 +35,7 @@ class BookCategoryControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'name', 'books_count']
+                    '*' => ['id', 'name', 'book_count']
                 ],
                 'links',
                 'meta'
@@ -43,19 +43,19 @@ class BookCategoryControllerTest extends TestCase
     }
 
     /**
-     * Test retrieving the full list of book categories.
+     * Test retrieving the full list of book categories without pagination.
      */
     public function test_can_get_book_categories_list()
     {
         BookCategory::factory()->count(5)->create();
 
-        $response = $this->getJson('/api/book-categories/list');
+        $response = $this->getJson('/api/book-categories?list=true');
 
         $response->assertStatus(200)
             ->assertJsonCount(5, 'data')
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'name']
+                    '*' => ['id', 'name', 'book_count']
                 ]
             ]);
     }
@@ -140,7 +140,7 @@ class BookCategoryControllerTest extends TestCase
     }
 
     /**
-     * Test searching book categories.
+     * Test searching book categories using the main route.
      */
     public function test_can_search_book_categories()
     {
@@ -148,12 +148,62 @@ class BookCategoryControllerTest extends TestCase
         BookCategory::factory()->create(['name' => 'Non-Fiction']);
         BookCategory::factory()->create(['name' => 'Science']);
 
-        $response = $this->getJson('/api/book-categories/search?query=fiction');
+        $response = $this->getJson('/api/book-categories?search=fiction');
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data')
             ->assertJsonFragment(['name' => 'Fiction'])
             ->assertJsonFragment(['name' => 'Non-Fiction']);
+    }
+
+    /**
+     * Test searching book categories using query parameter (backward compatibility).
+     */
+    public function test_can_search_book_categories_with_query_parameter()
+    {
+        BookCategory::factory()->create(['name' => 'Fiction']);
+        BookCategory::factory()->create(['name' => 'Non-Fiction']);
+        BookCategory::factory()->create(['name' => 'Science']);
+
+        $response = $this->getJson('/api/book-categories?query=fiction');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment(['name' => 'Fiction'])
+            ->assertJsonFragment(['name' => 'Non-Fiction']);
+    }
+
+    /**
+     * Test custom pagination with per_page parameter.
+     */
+    public function test_can_paginate_book_categories_with_custom_per_page()
+    {
+        BookCategory::factory()->count(15)->create();
+
+        $response = $this->getJson('/api/book-categories?per_page=5');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(5, 'data')
+            ->assertJsonPath('meta.per_page', 5);
+    }
+
+    /**
+     * Test combining search with pagination.
+     */
+    public function test_can_combine_search_with_pagination()
+    {
+        // Create categories where some match the search
+        BookCategory::factory()->create(['name' => 'Science Fiction']);
+        BookCategory::factory()->create(['name' => 'Non-Fiction']);
+        BookCategory::factory()->create(['name' => 'Fiction Novel']);
+        BookCategory::factory()->create(['name' => 'History']);
+        BookCategory::factory()->create(['name' => 'Biography']);
+
+        $response = $this->getJson('/api/book-categories?search=fiction&per_page=2');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('meta.per_page', 2);
     }
 
     /**

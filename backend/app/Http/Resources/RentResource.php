@@ -22,8 +22,8 @@ class RentResource extends BaseResource
             'book_code' => $this->bookCode->code,
             'status'=>$this->bookCode->status,
             'book' => $this->book->name,
-            'taken_by' => $this->takenBy->name,
-            'given_by' => $this->givenBy->name,
+            'taken_by' => $this->takenBy->full_name,
+            'given_by' => $this->givenBy->full_name,
             'given_date' => $givenDate,
         ];
 

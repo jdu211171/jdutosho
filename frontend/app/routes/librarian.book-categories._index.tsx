@@ -33,9 +33,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const query = url.searchParams.get('query') || ''
 
 	return await makeAuthenticatedRequest(request, async () => {
-		const endpoint = query ? '/book-categories/search' : '/book-categories'
-		const response = await api.get<CategoriesResponse>(endpoint, {
-			params: { page, query },
+		const response = await api.get<CategoriesResponse>('/book-categories', {
+			params: { page, search: query },
 		})
 
 		return json<LoaderData>({

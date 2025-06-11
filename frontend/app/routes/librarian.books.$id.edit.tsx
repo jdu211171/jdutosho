@@ -52,7 +52,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 	return await makeAuthenticatedRequest(request, async () => {
 		const [bookResponse, categoriesResponse] = await Promise.all([
 			api.get(`/books/${params.id}`),
-			api.get('/book-categories/list'),
+			api.get('/book-categories', { params: { list: true } }),
 		])
 
 		return json<LoaderData>({

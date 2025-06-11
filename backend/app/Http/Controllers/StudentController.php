@@ -14,7 +14,8 @@ class StudentController extends Controller
     public function index()
     {
         $student = auth()->user();
-        $rents = RentBook::where('taken_by', $student->id)
+        $rents = RentBook::with(['takenBy', 'givenBy', 'bookCode', 'book'])
+            ->where('taken_by', $student->id)
             ->whereNull('return_date')
             ->selectRaw('*, DATEDIFF(CURDATE(), given_date) as passed_days')
             ->orderBy('passed_days', 'desc')->get();
@@ -64,7 +65,8 @@ class StudentController extends Controller
 
     public function returnBook($id)
     {
-        $rent = RentBook::where('id', $id)
+        $rent = RentBook::with(['takenBy', 'givenBy', 'bookCode', 'book'])
+            ->where('id', $id)
             ->where('taken_by', auth()->user()->id)
             ->whereNull('return_date')
             ->first();

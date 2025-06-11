@@ -28,10 +28,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::apiResource('users', UserController::class);
         Route::prefix('/book-categories')->controller(BookCategoryController::class)->group(function () {
             Route::get('/', 'index');
-            Route::get('/list', 'list');
             Route::post('/', 'store');
-            Route::get('/search', 'search');
-
             Route::get('/{id}', 'show');
             Route::put('/{id}', 'update');
             Route::delete('/{id}', 'destroy');
@@ -55,8 +52,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::prefix('/rents')->controller(RentController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
-            Route::get('/pending', 'pending');
-            Route::put('/{id}/accept', 'accept');
+            Route::put('/{id}', 'update');
         });
         Route::prefix('/librarian')->controller(LibrarianController::class)->group(function() {
             Route::get('/dashboard', 'dashboard');

@@ -37,7 +37,7 @@ export async function loader({ request }: ActionFunctionArgs) {
 	await requireLibrarianUser(request)
 
 	return await makeAuthenticatedRequest(request, async () => {
-		const response = await api.get('/book-categories/list')
+		const response = await api.get('/book-categories', { params: { list: true } })
 		return json<LoaderData>({
 			categories: response.data.data,
 		})
