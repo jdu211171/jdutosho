@@ -6,6 +6,7 @@ export type RentBook = {
 	status: string
 	book: string
 	taken_by: string
+	taken_by_login_id: string
 	given_by: string
 	given_date: string
 	passed_days: number
@@ -28,6 +29,7 @@ export const RentsResponseSchema = z.object({
 				status: z.string(),
 				book: z.string(),
 				taken_by: z.string(),
+				taken_by_login_id: z.string(),
 				given_by: z.string(),
 				given_date: z.string(),
 				passed_days: z.number(),

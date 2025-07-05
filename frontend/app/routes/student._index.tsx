@@ -1,4 +1,4 @@
-import { useLoaderData, useRevalidator } from '@remix-run/react'
+import { useLoaderData, useRevalidator, Link } from '@remix-run/react'
 import type { LoaderFunctionArgs } from '@remix-run/node'
 import { api } from '~/lib/api'
 import {
@@ -7,8 +7,10 @@ import {
 } from '~/services/auth.server'
 import { useEffect } from 'react'
 import { StatCard } from '~/components/dashboard/stat-card'
+import { BorrowedBookCard } from '~/components/dashboard/borrowed-book-card'
 import { getStudentDashboardConfig } from '~/config/dashboard'
 import type { StudentDashboardData } from '~/types/dashboard'
+import { ArrowRight } from 'lucide-react'
 
 export function meta() {
 	return [
@@ -66,6 +68,28 @@ export default function StudentDashboard() {
 					<StatCard key={stat.title} {...stat} />
 				))}
 			</div>
+
+			{stats.borrowedBooks && stats.borrowedBooks.length > 0 && (
+				<div className='space-y-4'>
+					<div className='flex justify-between items-center'>
+						<h3 className='text-xl font-semibold'>Currently Borrowed Books</h3>
+						{stats.totalBorrowed > 5 && (
+							<Link
+								to='/student/rents'
+								className='text-sm text-muted-foreground hover:text-primary flex items-center gap-1'
+							>
+								View all {stats.totalBorrowed} books
+								<ArrowRight className='h-3 w-3' />
+							</Link>
+						)}
+					</div>
+					<div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+						{stats.borrowedBooks.map(book => (
+							<BorrowedBookCard key={book.id} rent={book} />
+						))}
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }

@@ -11,7 +11,8 @@ import { DataTable } from '~/components/book-table/data-table'
 import { useBooksQuery } from '~/hooks/use-books-query'
 import type { BooksResponse, BooksPaginationMeta } from '~/types/books'
 import { Button } from '~/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
+import { BookQuickAddForm } from '~/components/book-quick-add-form'
 
 export function meta() {
 	return [
@@ -91,23 +92,38 @@ export default function BooksPage() {
 					<h2 className='text-3xl font-bold'>Books</h2>
 					<p className='text-muted-foreground'>Manage your books</p>
 				</div>
-				<Button asChild>
-					<a href='/librarian/books/new'>
-						<Plus className='h-4 w-4 mr-2' />
-						Add Book
-					</a>
-				</Button>
+				<div className='flex gap-2'>
+					<Button variant='outline' asChild>
+						<a href='/librarian/books/bulk'>
+							<Upload className='h-4 w-4 mr-2' />
+							Bulk Import
+						</a>
+					</Button>
+					<Button asChild>
+						<a href='/librarian/books/new'>
+							<Plus className='h-4 w-4 mr-2' />
+							Add Book
+						</a>
+					</Button>
+				</div>
 			</div>
 
-			<DataTable
-				data={data}
-				columns={columns}
-				pageCount={meta.last_page}
-				currentPage={currentPage}
-				onPageChange={handlePageChange}
-				onSearch={handleSearch}
-				initialSearch={search}
-			/>
+			<div className='grid gap-6 md:grid-cols-4'>
+				<div className='md:col-span-1'>
+					<BookQuickAddForm />
+				</div>
+				<div className='md:col-span-3'>
+					<DataTable
+						data={data}
+						columns={columns}
+						pageCount={meta.last_page}
+						currentPage={currentPage}
+						onPageChange={handlePageChange}
+						onSearch={handleSearch}
+						initialSearch={search}
+					/>
+				</div>
+			</div>
 		</div>
 	)
 }

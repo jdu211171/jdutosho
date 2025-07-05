@@ -1,4 +1,5 @@
 import { LucideIcon } from 'lucide-react'
+import type { RentBook } from '~/types/rents'
 
 export type LibrarianDashboardData = {
 	totalBooks: number
@@ -12,6 +13,7 @@ export type StudentDashboardData = {
 	availableBooks: number
 	rentHistory: number
 	averageRentDays: number
+	borrowedBooks: RentBook[]
 }
 
 export type StatCardProps = {

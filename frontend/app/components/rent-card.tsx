@@ -12,7 +12,9 @@ export function RentCard({ rent }: { rent: RentBook }) {
 			<CardContent className='space-y-3'>
 				<div className='flex items-center space-x-2'>
 					<User className='h-4 w-4 shrink-0 text-muted-foreground' />
-					<span className='text-sm'>Borrowed by: {rent.taken_by}</span>
+					<span className='text-sm'>
+						Borrowed by: {rent.taken_by} (ID: {rent.taken_by_login_id})
+					</span>
 				</div>
 				<div className='flex items-center space-x-2'>
 					<User className='h-4 w-4 shrink-0 text-muted-foreground' />
