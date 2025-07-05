@@ -17,6 +17,7 @@ class UpdateBookRequest extends BaseRequest
             'author' => ['required', 'string', 'max:255'],
             'language' => ['required', 'string', 'in:uz,ru,en,ja'],
             'category' => ['required', 'exists:book_categories,id'],
+            'pdf' => ['nullable', 'file', 'mimes:pdf', 'max:10240'], // 10MB max
         ];
     }
 }

@@ -19,6 +19,7 @@ class StoreBookRequest extends BaseRequest
             'language' => ['required', 'string', 'in:uz,ru,en,ja'],
             'category' => ['required', 'exists:book_categories,id'],
             'codes' => ['required', 'array', 'min:1', 'distinct', 'unique:book_codes,code'],
+            'pdf' => ['nullable', 'file', 'mimes:pdf', 'max:10240'], // 10MB max
         ];
     }
 }

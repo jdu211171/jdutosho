@@ -10,6 +10,7 @@ use App\Http\Resources\BookResource;
 use App\Models\Book;
 use App\Models\BookCode;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
@@ -118,11 +119,18 @@ class BookController extends Controller
     {
         $validated = $request->validated();
 
+        // Handle PDF upload
+        $pdfPath = null;
+        if ($request->hasFile('pdf')) {
+            $pdfPath = $request->file('pdf')->store('pdfs', 'public');
+        }
+
         $book = Book::create([
             'name' => $validated['name'],
             'author' => $validated['author'],
             'language' => $validated['language'],
             'category_id' => $validated['category'],
+            'pdf_path' => $pdfPath,
         ]);
 
         foreach ($validated['codes'] as $code) {
@@ -160,12 +168,25 @@ class BookController extends Controller
             return response()->json(['message' => 'Book not found'], 404);
         }
 
-        $book->update([
+        // Handle PDF upload
+        $updateData = [
             'name' => $validated['name'],
             'author' => $validated['author'],
             'language' => $validated['language'],
             'category_id' => $validated['category'],
-        ]);
+        ];
+
+        if ($request->hasFile('pdf')) {
+            // Delete old PDF if exists
+            if ($book->pdf_path && Storage::disk('public')->exists($book->pdf_path)) {
+                Storage::disk('public')->delete($book->pdf_path);
+            }
+            
+            // Store new PDF
+            $updateData['pdf_path'] = $request->file('pdf')->store('pdfs', 'public');
+        }
+
+        $book->update($updateData);
 
         $book->load('codes');
 
@@ -231,5 +252,49 @@ class BookController extends Controller
                 return $query->where('code', 'like', "%{$search}%");
             })->get();
         return BookCodeListResource::collection($book_codes);
+    }
+
+    /**
+     * Preview PDF file in browser
+     */
+    public function previewPdf($id)
+    {
+        $book = Book::find($id);
+
+        if (!$book) {
+            return response()->json(['message' => 'Book not found'], 404);
+        }
+
+        if (!$book->pdf_path || !Storage::disk('public')->exists($book->pdf_path)) {
+            return response()->json(['message' => 'PDF not found'], 404);
+        }
+
+        $pdfPath = Storage::disk('public')->path($book->pdf_path);
+        
+        return response()->file($pdfPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $book->name . '.pdf"'
+        ]);
+    }
+
+    /**
+     * Download PDF file
+     */
+    public function downloadPdf($id)
+    {
+        $book = Book::find($id);
+
+        if (!$book) {
+            return response()->json(['message' => 'Book not found'], 404);
+        }
+
+        if (!$book->pdf_path || !Storage::disk('public')->exists($book->pdf_path)) {
+            return response()->json(['message' => 'PDF not found'], 404);
+        }
+
+        $pdfPath = Storage::disk('public')->path($book->pdf_path);
+        $fileName = $book->name . '_by_' . $book->author . '.pdf';
+        
+        return response()->download($pdfPath, $fileName);
     }
 }

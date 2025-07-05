@@ -21,6 +21,7 @@ class BookFactory extends Factory
             'author' => $this->faker->name(),
             'language' => $this->faker->randomElement(['uz', 'ru', 'en', 'ja']),
             'category_id' => \App\Models\BookCategory::factory(),
+            'pdf_path' => null, // Default to no PDF
         ];
     }
 }

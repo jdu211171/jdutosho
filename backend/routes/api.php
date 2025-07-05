@@ -41,6 +41,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::put('/{id}', 'update');
             Route::put('/{id}/code', 'updateCodes');
             Route::delete('/{id}', 'destroy');
+            Route::get('/{id}/pdf/preview', 'previewPdf');
+            Route::get('/{id}/pdf/download', 'downloadPdf');
         });
         Route::prefix('/users')->controller(UserController::class)->group(function () {
             Route::get('/', 'index'); // Now supports ?role=student&search=query filtering

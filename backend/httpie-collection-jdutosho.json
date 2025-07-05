@@ -460,6 +460,78 @@
         }
       },
       {
+        "name": "Create book with PDF",
+        "url": "{{jdutosho}}/books",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "form",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": true,
+            "fields": [
+              {
+                "name": "name",
+                "value": "Programming with Python",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "author",
+                "value": "John Smith",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "language",
+                "value": "en",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "category",
+                "value": "1",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "codes[]",
+                "value": "PYT001",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "codes[]",
+                "value": "PYT002",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "pdf",
+                "value": "/path/to/your/book.pdf",
+                "enabled": true,
+                "file": true
+              }
+            ]
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
         "name": "Show book",
         "url": "{{jdutosho}}/books/1",
         "method": "GET",
@@ -518,6 +590,66 @@
         }
       },
       {
+        "name": "Update book with PDF",
+        "url": "{{jdutosho}}/books/1",
+        "method": "PUT",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "form",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": true,
+            "fields": [
+              {
+                "name": "name",
+                "value": "The Great Gatsby - Updated with PDF",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "author",
+                "value": "F. Scott Fitzgerald",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "language",
+                "value": "en",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "category",
+                "value": "3",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "pdf",
+                "value": "/path/to/your/updated-book.pdf",
+                "enabled": true,
+                "file": true
+              }
+            ]
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
         "name": "Delete book",
         "url": "{{jdutosho}}/books/1",
         "method": "DELETE",
@@ -539,6 +671,254 @@
           "form": {
             "isMultipart": false,
             "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Preview book PDF",
+        "url": "{{jdutosho}}/books/1/pdf/preview",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Download book PDF",
+        "url": "{{jdutosho}}/books/1/pdf/download",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Test PDF validation - Invalid file type",
+        "url": "{{jdutosho}}/books",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "form",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": true,
+            "fields": [
+              {
+                "name": "name",
+                "value": "Test Book",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "author",
+                "value": "Test Author",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "language",
+                "value": "en",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "category",
+                "value": "1",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "codes[]",
+                "value": "TEST001",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "pdf",
+                "value": "/path/to/your/document.txt",
+                "enabled": true,
+                "file": true
+              }
+            ]
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Preview PDF - Book not found",
+        "url": "{{jdutosho}}/books/999/pdf/preview",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Download PDF - Book not found",
+        "url": "{{jdutosho}}/books/999/pdf/download",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Create book with oversized PDF (>10MB)",
+        "url": "{{jdutosho}}/books",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "form",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": true,
+            "fields": [
+              {
+                "name": "name",
+                "value": "Large Book",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "author",
+                "value": "Test Author",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "language",
+                "value": "en",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "category",
+                "value": "1",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "codes[]",
+                "value": "LARGE001",
+                "enabled": true,
+                "file": false
+              },
+              {
+                "name": "pdf",
+                "value": "/path/to/your/large-book-over-10mb.pdf",
+                "enabled": true,
+                "file": true
+              }
+            ]
           },
           "graphql": {
             "query": "",

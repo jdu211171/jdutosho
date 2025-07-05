@@ -20,6 +20,8 @@ class BookResource extends BaseResource
             'language' => $this->language,
             'category_id' => $this->category_id,
             'category' => $this->category->name,
+            'has_pdf' => !is_null($this->pdf_path),
+            'pdf_url' => $this->pdf_path ? asset('storage/' . $this->pdf_path) : null,
         ];
 
         if ($this->relationLoaded('codes')) {
