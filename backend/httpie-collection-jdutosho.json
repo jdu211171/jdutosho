@@ -484,44 +484,47 @@
               {
                 "name": "name",
                 "value": "Programming with Python",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "author",
                 "value": "John Smith",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "language",
                 "value": "en",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "category",
                 "value": "1",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "codes[]",
                 "value": "PYT001",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "codes[]",
                 "value": "PYT002",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "pdf",
                 "value": "/path/to/your/book.pdf",
+                "type": "file",
                 "enabled": true,
-                "file": true
+                "file": {
+                  "name": ""
+                }
               }
             ]
           },
@@ -614,32 +617,35 @@
               {
                 "name": "name",
                 "value": "The Great Gatsby - Updated with PDF",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "author",
                 "value": "F. Scott Fitzgerald",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "language",
                 "value": "en",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "category",
                 "value": "3",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "pdf",
                 "value": "/path/to/your/updated-book.pdf",
+                "type": "file",
                 "enabled": true,
-                "file": true
+                "file": {
+                  "name": ""
+                }
               }
             ]
           },
@@ -761,38 +767,41 @@
               {
                 "name": "name",
                 "value": "Test Book",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "author",
                 "value": "Test Author",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "language",
                 "value": "en",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "category",
                 "value": "1",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "codes[]",
                 "value": "TEST001",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "pdf",
                 "value": "/path/to/your/document.txt",
+                "type": "file",
                 "enabled": true,
-                "file": true
+                "file": {
+                  "name": ""
+                }
               }
             ]
           },
@@ -885,38 +894,41 @@
               {
                 "name": "name",
                 "value": "Large Book",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "author",
                 "value": "Test Author",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "language",
                 "value": "en",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "category",
                 "value": "1",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "codes[]",
                 "value": "LARGE001",
-                "enabled": true,
-                "file": false
+                "type": "text",
+                "enabled": true
               },
               {
                 "name": "pdf",
                 "value": "/path/to/your/large-book-over-10mb.pdf",
+                "type": "file",
                 "enabled": true,
-                "file": true
+                "file": {
+                  "name": ""
+                }
               }
             ]
           },
@@ -1413,6 +1425,594 @@
         },
         "body": {
           "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Get Profile",
+        "url": "{{jdutosho}}/auth/profile",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Bulk Import Books",
+        "url": "{{jdutosho}}/books/bulk",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "form",
+          "file": {
+            "name": "CSV Format: title,code,author,language,category"
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": true,
+            "fields": [
+              {
+                "name": "file",
+                "value": "/path/to/books.csv",
+                "type": "file",
+                "enabled": true,
+                "file": {
+                  "name": ""
+                }
+              }
+            ]
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Get Available Book Codes",
+        "url": "{{jdutosho}}/books/available-codes",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [
+          {
+            "name": "search",
+            "value": "CODE",
+            "enabled": false
+          }
+        ],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Update Book Codes",
+        "url": "{{jdutosho}}/books/1/code",
+        "method": "PUT",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"codes\": [\"NEW001\", \"NEW002\", \"NEW003\"]\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Create Book Category",
+        "url": "{{jdutosho}}/book-categories",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"name\": \"Science Fiction\"\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Get Book Category",
+        "url": "{{jdutosho}}/book-categories/1",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Update Book Category",
+        "url": "{{jdutosho}}/book-categories/1",
+        "method": "PUT",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"name\": \"Science Fiction & Fantasy\"\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Delete Book Category",
+        "url": "{{jdutosho}}/book-categories/1",
+        "method": "DELETE",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Librarian Dashboard",
+        "url": "{{jdutosho}}/librarian/dashboard",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "List Books (Code View)",
+        "url": "{{jdutosho}}/books?view=codes",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [
+          {
+            "name": "view",
+            "value": "codes",
+            "enabled": true
+          },
+          {
+            "name": "status",
+            "value": "exist",
+            "enabled": false
+          },
+          {
+            "name": "code",
+            "value": "LIB",
+            "enabled": false
+          },
+          {
+            "name": "per_page",
+            "value": "20",
+            "enabled": false
+          }
+        ],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Get Profile",
+        "url": "{{jdutosho}}/auth/profile",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Bulk Import Books",
+        "url": "{{jdutosho}}/books/bulk",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"books\": [\n    {\n      \"name\": \"Book 1\",\n      \"author\": \"Author 1\",\n      \"language\": \"en\",\n      \"category\": 1,\n      \"codes\": [\"BOOK1-001\", \"BOOK1-002\"]\n    },\n    {\n      \"name\": \"Book 2\",\n      \"author\": \"Author 2\",\n      \"language\": \"uz\",\n      \"category\": 2,\n      \"codes\": [\"BOOK2-001\", \"BOOK2-002\"]\n    }\n  ]\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Get Available Book Codes",
+        "url": "{{jdutosho}}/books/available-codes",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Update Book Codes",
+        "url": "{{jdutosho}}/books/1/code",
+        "method": "PUT",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"codes\": [\"NEW-CODE-001\", \"NEW-CODE-002\", \"NEW-CODE-003\"]\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Create Book Category",
+        "url": "{{jdutosho}}/book-categories",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"name\": \"Science Fiction\"\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Get Book Category",
+        "url": "{{jdutosho}}/book-categories/1",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Update Book Category",
+        "url": "{{jdutosho}}/book-categories/1",
+        "method": "PUT",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"name\": \"Updated Category Name\"\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Delete Book Category",
+        "url": "{{jdutosho}}/book-categories/1",
+        "method": "DELETE",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Librarian Dashboard",
+        "url": "{{jdutosho}}/librarian/dashboard",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
           "file": {
             "name": ""
           },

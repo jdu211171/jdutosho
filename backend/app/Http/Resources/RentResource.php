@@ -23,6 +23,7 @@ class RentResource extends BaseResource
             'status'=>$this->bookCode->status,
             'book' => $this->book->name,
             'taken_by' => $this->takenBy->full_name,
+            'taken_by_login_id' => $this->takenBy->loginID,
             'given_by' => $this->givenBy->full_name,
             'given_date' => $givenDate,
         ];

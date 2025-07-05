@@ -9,8 +9,11 @@ use App\Http\Resources\BookCodesAdvancedResource;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use App\Models\BookCode;
+use App\Models\BookCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class BookController extends Controller
 {
@@ -296,5 +299,143 @@ class BookController extends Controller
         $fileName = $book->name . '_by_' . $book->author . '.pdf';
         
         return response()->download($pdfPath, $fileName);
+    }
+
+    /**
+     * Bulk import books from CSV
+     */
+    public function bulkImport(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:10240', // Max 10MB
+        ]);
+
+        $file = $request->file('file');
+        $csvData = array_map('str_getcsv', file($file->getRealPath()));
+        
+        // Skip header row if present
+        $header = array_shift($csvData);
+        
+        // Validate header format
+        $expectedHeaders = ['title', 'code'];
+        $optionalHeaders = ['author', 'language', 'category'];
+        
+        // Clean and lowercase headers for comparison
+        $cleanedHeaders = array_map(function($h) {
+            return strtolower(trim($h));
+        }, $header);
+        
+        // Check if required headers are present
+        foreach ($expectedHeaders as $required) {
+            if (!in_array($required, $cleanedHeaders)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Missing required column: {$required}. Required columns are: title, code",
+                ], 422);
+            }
+        }
+        
+        $results = [
+            'success' => 0,
+            'failed' => 0,
+            'errors' => [],
+        ];
+        
+        // Get header indexes
+        $headerIndexes = array_flip($cleanedHeaders);
+        
+        DB::beginTransaction();
+        
+        try {
+            foreach ($csvData as $rowIndex => $row) {
+                $rowNumber = $rowIndex + 2; // Account for 0-index and header row
+                
+                // Skip empty rows
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+                
+                // Extract data based on headers
+                $bookData = [
+                    'name' => trim($row[$headerIndexes['title']] ?? ''),
+                    'codes' => array_map('trim', explode(',', $row[$headerIndexes['code']] ?? '')),
+                    'author' => isset($headerIndexes['author']) ? trim($row[$headerIndexes['author']] ?? 'Unknown') : 'Unknown',
+                    'language' => isset($headerIndexes['language']) ? trim($row[$headerIndexes['language']] ?? 'en') : 'en',
+                    'category_name' => isset($headerIndexes['category']) ? trim($row[$headerIndexes['category']] ?? '') : null,
+                ];
+                
+                // Validate row data
+                $validator = Validator::make($bookData, [
+                    'name' => 'required|string|max:255',
+                    'codes' => 'required|array|min:1',
+                    'codes.*' => 'required|string|unique:book_codes,code',
+                    'author' => 'required|string|max:255',
+                    'language' => 'required|in:uz,ru,en,ja',
+                ]);
+                
+                if ($validator->fails()) {
+                    $results['failed']++;
+                    $results['errors'][] = [
+                        'row' => $rowNumber,
+                        'title' => $bookData['name'],
+                        'errors' => $validator->errors()->all(),
+                    ];
+                    continue;
+                }
+                
+                // Find or create category if provided
+                $categoryId = null;
+                if (!empty($bookData['category_name'])) {
+                    $category = BookCategory::firstOrCreate(
+                        ['name' => $bookData['category_name']],
+                        ['name' => $bookData['category_name']]
+                    );
+                    $categoryId = $category->id;
+                } else {
+                    // Use default category or first available
+                    $defaultCategory = BookCategory::first();
+                    if ($defaultCategory) {
+                        $categoryId = $defaultCategory->id;
+                    }
+                }
+                
+                // Create book
+                $book = Book::create([
+                    'name' => $bookData['name'],
+                    'author' => $bookData['author'],
+                    'language' => $bookData['language'],
+                    'category_id' => $categoryId,
+                ]);
+                
+                // Create book codes
+                foreach ($bookData['codes'] as $code) {
+                    if (!empty($code)) {
+                        $book->codes()->create([
+                            'code' => $code,
+                            'status' => 'exist',
+                        ]);
+                    }
+                }
+                
+                $results['success']++;
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Import completed. {$results['success']} books imported successfully.",
+                'details' => $results,
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Import failed: ' . $e->getMessage(),
+                'details' => $results,
+            ], 500);
+        }
     }
 }

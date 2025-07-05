@@ -36,6 +36,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::prefix('/books')->controller(BookController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
+            Route::post('/bulk', 'bulkImport');
             Route::get('/available-codes', 'availableCodes');
             Route::get('/{id}', 'show');
             Route::put('/{id}', 'update');

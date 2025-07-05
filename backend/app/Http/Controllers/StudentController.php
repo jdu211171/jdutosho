@@ -54,12 +54,22 @@ class StudentController extends Controller
             ')
             ->value('avg_days') ?? 0;
 
+        // Get current borrowed books (limit to 5 for dashboard)
+        $borrowedBooks = RentBook::with(['takenBy', 'givenBy', 'bookCode', 'book'])
+            ->where('taken_by', $student->id)
+            ->whereNull('return_date')
+            ->selectRaw('*, DATEDIFF(CURDATE(), given_date) as passed_days')
+            ->orderBy('passed_days', 'desc')
+            ->limit(5)
+            ->get();
+
         return response()->json([
             'data' => [
                 'totalBorrowed' => $totalBorrowed,
                 'availableBooks' => $availableBooks,
                 'rentHistory' => $rentHistory,
-                'averageRentDays' => (int) $averageRentDays
+                'averageRentDays' => (int) $averageRentDays,
+                'borrowedBooks' => RentResource::collection($borrowedBooks)
             ]
         ]);
     }
