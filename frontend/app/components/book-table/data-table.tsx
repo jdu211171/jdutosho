@@ -24,6 +24,7 @@ import {
 } from '~/components/ui/table'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableToolbar } from './data-table-toolbar'
+import { DataTableSkeleton } from './data-table-skeleton'
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
@@ -33,6 +34,7 @@ interface DataTableProps<TData, TValue> {
 	onPageChange?: (page: number) => void
 	onSearch?: (search: string) => void
 	initialSearch?: string
+	isLoading?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -43,6 +45,7 @@ export function DataTable<TData, TValue>({
 	onPageChange,
 	onSearch,
 	initialSearch = '',
+	isLoading = false,
 }: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = React.useState({})
 	const [columnVisibility, setColumnVisibility] =
@@ -104,6 +107,16 @@ export function DataTable<TData, TValue>({
 	const handleSearchChange = (value: string) => {
 		setSearch(value)
 		onSearch?.(value)
+	}
+
+	if (isLoading) {
+		return (
+			<DataTableSkeleton
+				columnCount={columns.length}
+				showToolbar={true}
+				showPagination={!!onPageChange && pageCount > 1}
+			/>
+		)
 	}
 
 	return (

@@ -22,9 +22,37 @@ import { createUserSession } from '~/services/auth.server'
 import { api } from '~/lib/api'
 import { ArrowLeft } from 'lucide-react'
 import { Footer } from '~/components/Footer'
+import { useSearchParams, useLoaderData } from '@remix-run/react'
+import { LoaderFunctionArgs } from '@remix-run/node'
+import { useState } from 'react'
+import { GoogleIcon } from '~/components/icons/google-icon'
+import { FacebookIcon } from '~/components/icons/facebook-icon'
 
 export function meta() {
 	return [{ title: 'Login' }, { description: 'Login to your account' }]
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+	const url = new URL(request.url);
+	const error = url.searchParams.get('error');
+	
+	// Get OAuth URLs from backend
+	let googleAuthUrl = null;
+	let facebookAuthUrl = null;
+	
+	try {
+		const [googleResponse, facebookResponse] = await Promise.all([
+			api.get('/auth/oauth-url/google').catch(() => null),
+			api.get('/auth/oauth-url/facebook').catch(() => null)
+		]);
+		
+		googleAuthUrl = googleResponse?.data?.url || null;
+		facebookAuthUrl = facebookResponse?.data?.url || null;
+	} catch (error) {
+		console.error('Failed to get OAuth URLs:', error);
+	}
+	
+	return json({ error, googleAuthUrl, facebookAuthUrl });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -60,9 +88,13 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function LoginPage() {
 	const actionData = useActionData() as { error?: string }
+	const loaderData = useLoaderData<typeof loader>()
 	const navigation = useNavigation()
 	const navigate = useNavigate()
+	const [searchParams] = useSearchParams()
 	const isSubmitting = navigation.state === 'submitting'
+	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+	const [isFacebookLoading, setIsFacebookLoading] = useState(false)
 	const {
 		register,
 		formState: { errors },
@@ -89,9 +121,9 @@ export default function LoginPage() {
 					<CardDescription>
 						Enter your username below to access your account
 					</CardDescription>
-					{actionData?.error && (
+					{(actionData?.error || loaderData?.error || searchParams.get('error')) && (
 						<p className='text-sm font-medium text-red-500 dark:text-red-400'>
-							{actionData.error}
+							{actionData?.error || loaderData?.error || searchParams.get('error')}
 						</p>
 					)}
 				</CardHeader>
@@ -129,12 +161,61 @@ export default function LoginPage() {
 								</p>
 							)}
 						</div>
+						<div className="text-right mb-4">
+							<Link to='/forgot-password' className='text-sm text-primary hover:underline'>
+								Forgot password?
+							</Link>
+						</div>
 						<Button type='submit' className='w-full' disabled={isSubmitting}>
 							{isSubmitting ? 'Logging in...' : 'Login'}
 						</Button>
-						<Button variant='outline' className='w-full'>
-							Login with Google
-						</Button>
+						
+						{(loaderData?.googleAuthUrl || loaderData?.facebookAuthUrl) && (
+							<>
+								<div className="relative">
+									<div className="absolute inset-0 flex items-center">
+										<span className="w-full border-t" />
+									</div>
+									<div className="relative flex justify-center text-xs uppercase">
+										<span className="bg-background px-2 text-muted-foreground">
+											Or continue with
+										</span>
+									</div>
+								</div>
+								
+								<div className="grid gap-2">
+									{loaderData?.googleAuthUrl && (
+										<Button 
+											variant='outline' 
+											className='w-full'
+											disabled={isGoogleLoading || isFacebookLoading}
+											onClick={() => {
+												setIsGoogleLoading(true);
+												window.location.href = loaderData.googleAuthUrl;
+											}}
+										>
+											<GoogleIcon className="mr-2 h-4 w-4" />
+											{isGoogleLoading ? 'Redirecting...' : 'Continue with Google'}
+										</Button>
+									)}
+									
+									{loaderData?.facebookAuthUrl && (
+										<Button 
+											variant='outline' 
+											className='w-full'
+											disabled={isGoogleLoading || isFacebookLoading}
+											onClick={() => {
+												setIsFacebookLoading(true);
+												window.location.href = loaderData.facebookAuthUrl;
+											}}
+										>
+											<FacebookIcon className="mr-2 h-4 w-4" />
+											{isFacebookLoading ? 'Redirecting...' : 'Continue with Facebook'}
+										</Button>
+									)}
+								</div>
+							</>
+						)}
 						<div className='mt-4 text-center text-sm'>
 							Don&apos;t have an account?{' '}
 							<Link to='/register' className='underline'>

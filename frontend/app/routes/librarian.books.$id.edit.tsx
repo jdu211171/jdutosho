@@ -16,6 +16,9 @@ import {
 import { BookForm } from '~/components/book-form'
 import { Button } from '~/components/ui/button'
 import type { Category, BookFormFieldErrors } from '~/types/books'
+import { FileDown, Eye } from 'lucide-react'
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 
 export function meta() {
 	return [
@@ -133,14 +136,57 @@ export default function EditBookPage() {
 		codes: book.codes.map(code => code.code),
 	}
 
+	const handlePreviewPDF = () => {
+		window.open(`/api/books/${book.id}/pdf/preview`, '_blank')
+	}
+
+	const handleDownloadPDF = () => {
+		window.location.href = `/api/books/${book.id}/pdf/download`
+	}
+
 	return (
-		<div className='mx-auto max-w-lg'>
+		<div className='mx-auto max-w-lg space-y-4'>
 			<BookForm
 				initialValues={formValues}
 				categories={categories}
 				actionData={actionData}
 				isSubmitting={isSubmitting}
 			/>
+			
+			{/* PDF Management Card */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-lg">PDF Management</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-2">
+					<div className="flex gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={handlePreviewPDF}
+							className="flex-1"
+						>
+							<Eye className="h-4 w-4 mr-2" />
+							Preview PDF
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={handleDownloadPDF}
+							className="flex-1"
+						>
+							<FileDown className="h-4 w-4 mr-2" />
+							Download PDF
+						</Button>
+					</div>
+					<p className="text-sm text-muted-foreground">
+						Manage the PDF file associated with this book
+					</p>
+				</CardContent>
+			</Card>
+			
 			<div className='mt-4'>
 				<Button
 					type='button'

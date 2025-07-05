@@ -15,6 +15,7 @@ import { QueryClient } from '@tanstack/query-core'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { getAuthToken } from './services/auth.server'
 import { Toaster } from './components/ui/toaster'
+import { ErrorBoundary as AppErrorBoundary } from './components/error-boundary'
 
 export const links: LinksFunction = () => [
 	{ rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -74,3 +75,5 @@ function App() {
 		</html>
 	)
 }
+
+export { AppErrorBoundary as ErrorBoundary }

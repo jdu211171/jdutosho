@@ -2,6 +2,7 @@ import { createCookieSessionStorage, redirect } from '@remix-run/node'
 import type { SessionData, SessionFlashData, User } from '~/types/auth'
 import { isAxiosError } from 'axios'
 import { api } from '~/lib/api'
+import { createErrorResponse } from '~/lib/error-handler'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -36,10 +37,10 @@ async function handleApiError(error: unknown, request: Request) {
 				},
 			})
 		}
-		// Handle other API errors
-		throw error
+		// Handle other API errors with our error handler
+		throw createErrorResponse(error)
 	}
-	throw error
+	throw createErrorResponse(error)
 }
 
 export async function makeAuthenticatedRequest<T>(

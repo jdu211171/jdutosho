@@ -2,6 +2,8 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from './data-table-column-header'
 import type { Book } from '~/types/book'
 import { DataTableRowActions } from './data-table-row-actions'
+import { Button } from '~/components/ui/button'
+import { Eye, FileDown } from 'lucide-react'
 
 export const columns: ColumnDef<Book>[] = [
 	{
@@ -107,5 +109,33 @@ export const studentBookColumns: ColumnDef<Book>[] = [
 		),
 		cell: ({ row }) => <div>{row.getValue('available') ? 'Yes' : 'No'}</div>,
 		enableHiding: true,
+	},
+	{
+		id: 'actions',
+		header: 'PDF',
+		cell: ({ row }) => {
+			const book = row.original
+			return (
+				<div className='flex gap-1'>
+					<Button
+						variant='ghost'
+						size='sm'
+						onClick={() => window.open(`/api/books/${book.id}/pdf/preview`, '_blank')}
+						title='Preview PDF'
+					>
+						<Eye className='h-4 w-4' />
+					</Button>
+					<Button
+						variant='ghost'
+						size='sm'
+						onClick={() => window.location.href = `/api/books/${book.id}/pdf/download`}
+						title='Download PDF'
+					>
+						<FileDown className='h-4 w-4' />
+					</Button>
+				</div>
+			)
+		},
+		enableHiding: false,
 	},
 ]

@@ -11,7 +11,7 @@ import { DataTable } from '~/components/book-table/data-table'
 import { useBooksQuery } from '~/hooks/use-books-query'
 import type { BooksResponse, BooksPaginationMeta } from '~/types/books'
 import { Button } from '~/components/ui/button'
-import { Plus, Upload } from 'lucide-react'
+import { Plus, Upload, Package, List } from 'lucide-react'
 import { BookQuickAddForm } from '~/components/book-quick-add-form'
 
 export function meta() {
@@ -93,6 +93,18 @@ export default function BooksPage() {
 					<p className='text-muted-foreground'>Manage your books</p>
 				</div>
 				<div className='flex gap-2'>
+					<Button variant='outline' asChild>
+						<a href='/librarian/books/list'>
+							<List className='h-4 w-4 mr-2' />
+							Book List
+						</a>
+					</Button>
+					<Button variant='outline' asChild>
+						<a href='/librarian/books/available-codes'>
+							<Package className='h-4 w-4 mr-2' />
+							Available Codes
+						</a>
+					</Button>
 					<Button variant='outline' asChild>
 						<a href='/librarian/books/bulk'>
 							<Upload className='h-4 w-4 mr-2' />

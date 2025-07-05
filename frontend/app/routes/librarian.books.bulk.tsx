@@ -1,16 +1,18 @@
 import { useState, useCallback } from 'react'
 import type { ActionFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { Form, useActionData, useNavigation } from '@remix-run/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
-import { Upload, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Upload, Download, CheckCircle, XCircle, AlertCircle, FileSpreadsheet, Loader2 } from 'lucide-react'
 import { api } from '~/lib/api'
 import { makeAuthenticatedRequest } from '~/services/auth.server'
+import { Progress } from '~/components/ui/progress'
+import { Badge } from '~/components/ui/badge'
 
 export function meta() {
 	return [
@@ -66,20 +68,69 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function BulkImportBooks() {
 	const actionData = useActionData<ImportResult>()
+	const navigation = useNavigation()
 	const [preview, setPreview] = useState<string[][]>([])
 	const [fileName, setFileName] = useState<string>('')
+	const [fileSize, setFileSize] = useState<number>(0)
+	const [validationErrors, setValidationErrors] = useState<string[]>([])
+	
+	const isSubmitting = navigation.state === 'submitting'
 
 	const handleFileChange = useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
 			const file = event.target.files?.[0]
+			setValidationErrors([])
+			
 			if (file) {
 				setFileName(file.name)
+				setFileSize(file.size)
+				
+				// Validate file
+				const errors: string[] = []
+				
+				// Check file extension
+				if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
+					errors.push('File must be a CSV or TXT file')
+				}
+				
+				// Check file size (10MB limit)
+				const maxSize = 10 * 1024 * 1024 // 10MB
+				if (file.size > maxSize) {
+					errors.push('File size must be less than 10MB')
+				}
+				
+				if (errors.length > 0) {
+					setValidationErrors(errors)
+					setPreview([])
+					return
+				}
+				
 				const reader = new FileReader()
 				reader.onload = (e) => {
 					const text = e.target?.result as string
 					const lines = text.split('\n').filter(line => line.trim())
-					const csvData = lines.map(line => line.split(',').map(cell => cell.trim()))
-					setPreview(csvData.slice(0, 6)) // Show first 5 rows + header
+					const csvData = lines.map(line => {
+						// Handle quoted values properly
+						const matches = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
+						return matches ? matches.map(cell => cell.replace(/^"|"$/g, '').trim()) : []
+					})
+					
+					// Validate CSV structure
+					if (csvData.length === 0) {
+						errors.push('CSV file is empty')
+					} else {
+						const headers = csvData[0].map(h => h.toLowerCase())
+						if (!headers.includes('title') || !headers.includes('code')) {
+							errors.push('CSV must have "title" and "code" columns')
+						}
+					}
+					
+					if (errors.length > 0) {
+						setValidationErrors(errors)
+						setPreview([])
+					} else {
+						setPreview(csvData.slice(0, 6)) // Show first 5 rows + header
+					}
 				}
 				reader.readAsText(file)
 			}
@@ -126,18 +177,41 @@ export default function BulkImportBooks() {
 					<Form method='post' encType='multipart/form-data' className='space-y-4'>
 						<div className='space-y-2'>
 							<Label htmlFor='file'>Select CSV File</Label>
-							<Input
-								id='file'
-								name='file'
-								type='file'
-								accept='.csv,.txt'
-								onChange={handleFileChange}
-								required
-							/>
-							{fileName && (
-								<p className='text-sm text-muted-foreground'>
-									Selected: {fileName}
-								</p>
+							<div className='flex items-center gap-3'>
+								<FileSpreadsheet className='h-10 w-10 text-muted-foreground' />
+								<div className='flex-1'>
+									<Input
+										id='file'
+										name='file'
+										type='file'
+										accept='.csv,.txt'
+										onChange={handleFileChange}
+										required
+										disabled={isSubmitting}
+									/>
+								</div>
+							</div>
+							{fileName && !validationErrors.length && (
+								<div className='flex items-center gap-2 text-sm text-muted-foreground'>
+									<CheckCircle className='h-4 w-4 text-green-600' />
+									<span>{fileName}</span>
+									<Badge variant='secondary' className='ml-auto'>
+										{(fileSize / 1024).toFixed(1)} KB
+									</Badge>
+								</div>
+							)}
+							{validationErrors.length > 0 && (
+								<Alert variant='destructive'>
+									<AlertCircle className='h-4 w-4' />
+									<AlertTitle>Validation Error</AlertTitle>
+									<AlertDescription>
+										<ul className='list-disc list-inside text-sm'>
+											{validationErrors.map((error, index) => (
+												<li key={index}>{error}</li>
+											))}
+										</ul>
+									</AlertDescription>
+								</Alert>
 							)}
 						</div>
 
@@ -176,10 +250,31 @@ export default function BulkImportBooks() {
 							</div>
 						)}
 
-						<Button type='submit' disabled={!fileName}>
-							<Upload className='h-4 w-4 mr-2' />
-							Import Books
+						<Button 
+							type='submit' 
+							disabled={!fileName || validationErrors.length > 0 || isSubmitting}
+						>
+							{isSubmitting ? (
+								<>
+									<Loader2 className='h-4 w-4 mr-2 animate-spin' />
+									Importing...
+								</>
+							) : (
+								<>
+									<Upload className='h-4 w-4 mr-2' />
+									Import Books
+								</>
+							)}
 						</Button>
+						
+						{isSubmitting && (
+							<div className='space-y-2'>
+								<Progress value={30} className='w-full' />
+								<p className='text-sm text-muted-foreground text-center'>
+									Processing CSV file... This may take a few moments for large files.
+								</p>
+							</div>
+						)}
 					</Form>
 
 					{actionData && (

@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(bun run:*)",
+      "Bash(bun add:*)",
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(rg:*)",
+      "Bash(ls:*)",
+      "Bash(tsc:*)",
+      "Bash(bunx tsc:*)",
+      "Bash(true)",
+      "Bash(rm:*)",
+      "Bash(find:*)",
+      "Bash(bun prisma migrate dev:*)",
+      "Bash(bun prisma generate:*)",
+      "Bash(bun prisma migrate:*)",
+      "Bash(sed:*)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(tree:*)",
+      "Bash(pkill:*)",
+      "Bash(bun prisma db seed:*)",
+      "Bash(cp:*)",
+      "Bash(git pull:*)",
+      "Bash(bun prisma db pull:*)",
+      "Bash(git stash show:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(python3:*)",
+      "WebFetch(domain:schema.httpie.io)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(jq:*)",
+      "Bash(/dev/null)",
+      "Bash(mysql:*)",
+      "Bash(openssl rand:*)"
+    ],
+    "deny": []
+  }
+}
