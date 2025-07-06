@@ -6,7 +6,10 @@ interface LoadingSpinnerProps {
 	size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
-export function LoadingSpinner({ className, size = 'md' }: LoadingSpinnerProps) {
+export function LoadingSpinner({
+	className,
+	size = 'md',
+}: LoadingSpinnerProps) {
 	const sizeClasses = {
 		sm: 'h-4 w-4',
 		md: 'h-6 w-6',
@@ -16,7 +19,11 @@ export function LoadingSpinner({ className, size = 'md' }: LoadingSpinnerProps) 
 
 	return (
 		<Loader2
-			className={cn('animate-spin text-muted-foreground', sizeClasses[size], className)}
+			className={cn(
+				'animate-spin text-muted-foreground',
+				sizeClasses[size],
+				className
+			)}
 		/>
 	)
 }
@@ -26,7 +33,10 @@ interface LoadingOverlayProps {
 	message?: string
 }
 
-export function LoadingOverlay({ className, message = 'Loading...' }: LoadingOverlayProps) {
+export function LoadingOverlay({
+	className,
+	message = 'Loading...',
+}: LoadingOverlayProps) {
 	return (
 		<div
 			className={cn(
@@ -34,9 +44,9 @@ export function LoadingOverlay({ className, message = 'Loading...' }: LoadingOve
 				className
 			)}
 		>
-			<div className="flex flex-col items-center gap-2">
-				<LoadingSpinner size="lg" />
-				<p className="text-sm text-muted-foreground">{message}</p>
+			<div className='flex flex-col items-center gap-2'>
+				<LoadingSpinner size='lg' />
+				<p className='text-sm text-muted-foreground'>{message}</p>
 			</div>
 		</div>
 	)
@@ -47,7 +57,10 @@ interface LoadingCardProps {
 	message?: string
 }
 
-export function LoadingCard({ className, message = 'Loading...' }: LoadingCardProps) {
+export function LoadingCard({
+	className,
+	message = 'Loading...',
+}: LoadingCardProps) {
 	return (
 		<div
 			className={cn(
@@ -55,9 +68,9 @@ export function LoadingCard({ className, message = 'Loading...' }: LoadingCardPr
 				className
 			)}
 		>
-			<div className="flex flex-col items-center gap-2">
-				<LoadingSpinner size="md" />
-				<p className="text-sm text-muted-foreground">{message}</p>
+			<div className='flex flex-col items-center gap-2'>
+				<LoadingSpinner size='md' />
+				<p className='text-sm text-muted-foreground'>{message}</p>
 			</div>
 		</div>
 	)

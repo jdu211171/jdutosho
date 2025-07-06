@@ -33,7 +33,9 @@ export function BorrowedBookCard({ rent }: { rent: RentBook }) {
 				<div className='flex items-start justify-between'>
 					<div className='space-y-1'>
 						<h4 className='font-medium leading-none'>{rent.book}</h4>
-						<p className='text-sm text-muted-foreground'>Code: {rent.book_code}</p>
+						<p className='text-sm text-muted-foreground'>
+							Code: {rent.book_code}
+						</p>
 					</div>
 					<BookOpen className='h-4 w-4 text-muted-foreground' />
 				</div>

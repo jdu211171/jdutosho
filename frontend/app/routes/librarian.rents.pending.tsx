@@ -1,4 +1,8 @@
-import { useLoaderData } from '@remix-run/react'
+import {
+	useLoaderData,
+	isRouteErrorResponse,
+	useRouteError,
+} from '@remix-run/react'
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { api } from '~/lib/api'
@@ -31,24 +35,48 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const page = url.searchParams.get('page') || '1'
 	const search = url.searchParams.get('search') || ''
 
-	return await makeAuthenticatedRequest(request, async () => {
-		const response = await api.get<PendingReturnsResponse>('/rents/pending', {
-			params: { page, search },
-		})
+	try {
+		return await makeAuthenticatedRequest(request, async () => {
+			const response = await api.get<PendingReturnsResponse>('/rents', {
+				params: { page, search, status: 'pending' },
+			})
 
-		const meta = response.data.meta || {
-			current_page: 1,
-			last_page: 1,
-			per_page: 10,
-			total: 0,
+			const meta = response.data.meta || {
+				current_page: 1,
+				last_page: 1,
+				per_page: 10,
+				total: 0,
+			}
+
+			return json<LoaderData>({
+				data: response.data.data,
+				meta,
+				error: null,
+			})
+		})
+	} catch (error: any) {
+		// Extract error message from the error object
+		let errorMessage = 'Failed to load pending returns'
+
+		if (error?.data?.error) {
+			errorMessage = error.data.error
+		} else if (typeof error === 'string') {
+			errorMessage = error
+		} else if (error?.message) {
+			errorMessage = error.message
 		}
 
 		return json<LoaderData>({
-			data: response.data.data,
-			meta,
-			error: null,
+			data: [],
+			meta: {
+				current_page: 1,
+				last_page: 1,
+				per_page: 10,
+				total: 0,
+			},
+			error: errorMessage,
 		})
-	})
+	}
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -70,7 +98,9 @@ export default function LibrarianRentsPendingPage() {
 	if (error) {
 		return (
 			<div className='p-4 bg-destructive/15 text-destructive rounded-md'>
-				{error}
+				{typeof error === 'string'
+					? error
+					: 'An error occurred while loading pending returns'}
 			</div>
 		)
 	}
@@ -135,6 +165,30 @@ export default function LibrarianRentsPendingPage() {
 					))}
 				</div>
 			)}
+		</div>
+	)
+}
+
+export function ErrorBoundary() {
+	const error = useRouteError()
+
+	if (isRouteErrorResponse(error)) {
+		return (
+			<div className='p-4 bg-destructive/15 text-destructive rounded-md'>
+				<h2 className='text-lg font-semibold mb-2'>Error {error.status}</h2>
+				<p>{error.data?.error || error.data?.message || error.statusText}</p>
+			</div>
+		)
+	}
+
+	return (
+		<div className='p-4 bg-destructive/15 text-destructive rounded-md'>
+			<h2 className='text-lg font-semibold mb-2'>Error</h2>
+			<p>
+				{error instanceof Error
+					? error.message
+					: 'An unexpected error occurred'}
+			</p>
 		</div>
 	)
 }

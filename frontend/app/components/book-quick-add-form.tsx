@@ -1,18 +1,63 @@
-import { useState } from 'react'
-import { useFetcher } from '@remix-run/react'
+import { useState, useEffect } from 'react'
+import { useFetcher, useRevalidator } from '@remix-run/react'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '~/components/ui/select'
 import { toast } from '~/hooks/use-toast'
 import { PlusCircle, X } from 'lucide-react'
 
-export function BookQuickAddForm() {
+interface BookQuickAddFormProps {
+	categories: Array<{ id: number; name: string }>
+}
+
+export function BookQuickAddForm({ categories }: BookQuickAddFormProps) {
 	const fetcher = useFetcher()
+	const { revalidate } = useRevalidator()
 	const [isOpen, setIsOpen] = useState(false)
 	const [codes, setCodes] = useState([''])
 
 	const isSubmitting = fetcher.state !== 'idle'
+
+	// Watch for successful submission
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data) {
+			const data = fetcher.data as any
+			// If we have fieldErrors, it means there was an error
+			if (data.fieldErrors) {
+				// Handle errors if needed
+				const errors = data.fieldErrors
+				if (errors.codes) {
+					toast({
+						title: 'Error',
+						description: errors.codes,
+						variant: 'destructive',
+					})
+				}
+			} else {
+				// No fieldErrors means successful creation
+				// Revalidate to refresh the table
+				revalidate()
+
+				// Reset form
+				setIsOpen(false)
+				setCodes([''])
+
+				// Show success toast
+				toast({
+					title: 'Book Added',
+					description: 'The book has been added successfully',
+				})
+			}
+		}
+	}, [fetcher.state, fetcher.data, revalidate])
 
 	const handleAddCode = () => {
 		setCodes([...codes, ''])
@@ -33,12 +78,14 @@ export function BookQuickAddForm() {
 		event.preventDefault()
 		const formData = new FormData(event.currentTarget)
 		const title = formData.get('title') as string
+		const author = formData.get('author') as string
+		const language = formData.get('language') as string
 		const validCodes = codes.filter(code => code.trim() !== '')
 
-		if (!title || validCodes.length === 0) {
+		if (!title || !language || validCodes.length === 0) {
 			toast({
 				title: 'Validation Error',
-				description: 'Please provide a title and at least one code',
+				description: 'Please provide title, language, and at least one code',
 				variant: 'destructive',
 			})
 			return
@@ -47,26 +94,17 @@ export function BookQuickAddForm() {
 		// Create a new FormData with the processed values
 		const submitData = new FormData()
 		submitData.append('name', title)
-		submitData.append('author', 'Unknown')
-		submitData.append('language', 'en')
-		submitData.append('category', '1') // Default category
-		validCodes.forEach(code => submitData.append('codes[]', code))
+		submitData.append('author', author || 'Unknown')
+		submitData.append('language', language)
+		// Use first category as default
+		const defaultCategory = categories.length > 0 ? categories[0].id.toString() : '1'
+		submitData.append('category', defaultCategory)
+		validCodes.forEach(code => submitData.append('codes', code))
 
 		fetcher.submit(submitData, {
 			method: 'post',
-			action: '/librarian/books',
+			action: '/librarian/books/new',
 		})
-
-		// Reset form after submission
-		if (fetcher.state === 'idle') {
-			setIsOpen(false)
-			setCodes([''])
-			event.currentTarget.reset()
-			toast({
-				title: 'Book Added',
-				description: 'The book has been added successfully',
-			})
-		}
 	}
 
 	if (!isOpen) {
@@ -112,13 +150,38 @@ export function BookQuickAddForm() {
 					</div>
 
 					<div className='space-y-2'>
+						<Label htmlFor='author'>Author (optional)</Label>
+						<Input
+							id='author'
+							name='author'
+							placeholder='Enter author name'
+							disabled={isSubmitting}
+						/>
+					</div>
+
+					<div className='space-y-2'>
+						<Label htmlFor='language'>Language</Label>
+						<Select name='language' required>
+							<SelectTrigger>
+								<SelectValue placeholder='Select language' />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value='uz'>Uzbek</SelectItem>
+								<SelectItem value='ru'>Russian</SelectItem>
+								<SelectItem value='en'>English</SelectItem>
+								<SelectItem value='ja'>Japanese</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className='space-y-2'>
 						<Label>Book Codes</Label>
 						{codes.map((code, index) => (
 							<div key={index} className='flex gap-2'>
 								<Input
 									placeholder='Enter book code'
 									value={code}
-									onChange={(e) => handleCodeChange(index, e.target.value)}
+									onChange={e => handleCodeChange(index, e.target.value)}
 									disabled={isSubmitting}
 								/>
 								{codes.length > 1 && (

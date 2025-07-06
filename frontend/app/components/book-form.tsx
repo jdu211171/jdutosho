@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X, FileText, Upload } from 'lucide-react'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import {
@@ -17,6 +17,7 @@ import {
 	CardDescription,
 	CardContent,
 } from '~/components/ui/card'
+import { PDFPreviewModal } from '~/components/pdf-preview-modal'
 import type {
 	Category,
 	BookFormFieldErrors,
@@ -24,7 +25,11 @@ import type {
 } from '~/types/books'
 
 interface BookFormProps {
-	initialValues?: BookFormValues
+	initialValues?: BookFormValues & {
+		id?: number
+		has_pdf?: boolean
+		pdf_url?: string
+	}
 	categories: Category[]
 	actionData?: {
 		error?: string
@@ -41,6 +46,7 @@ export function BookForm({
 }: Omit<BookFormProps, 'onSubmit'>) {
 	const [codes, setCodes] = useState<string[]>(initialValues.codes || [])
 	const [currentCode, setCurrentCode] = useState('')
+	const [isPDFModalOpen, setIsPDFModalOpen] = useState(false)
 
 	useEffect(() => {
 		if (initialValues.codes) {
@@ -60,8 +66,9 @@ export function BookForm({
 	}
 
 	return (
-		<Card>
-			<CardHeader>
+		<>
+			<Card>
+				<CardHeader>
 				<CardTitle>{initialValues.name ? 'Edit Book' : 'New Book'}</CardTitle>
 				<CardDescription>
 					{initialValues.name
@@ -70,7 +77,7 @@ export function BookForm({
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<form method='post' className='space-y-4'>
+				<form method='post' className='space-y-4' encType='multipart/form-data'>
 					<div className='space-y-2'>
 						<Label htmlFor='name'>Book Title</Label>
 						<Input
@@ -190,6 +197,46 @@ export function BookForm({
 							</p>
 						)}
 					</div>
+
+					<div className='space-y-2'>
+						<Label htmlFor='pdf'>PDF File</Label>
+						{initialValues.has_pdf && initialValues.pdf_url && (
+							<div className='mb-2 p-3 bg-secondary/20 rounded-md flex items-center justify-between'>
+								<div className='flex items-center gap-2'>
+									<FileText className='h-4 w-4' />
+									<span className='text-sm'>Current PDF uploaded</span>
+								</div>
+								<div className='flex gap-2'>
+									<Button
+										type='button'
+										variant='outline'
+										size='sm'
+										onClick={() => setIsPDFModalOpen(true)}
+									>
+										Preview
+									</Button>
+								</div>
+							</div>
+						)}
+						<div className='flex items-center gap-4'>
+							<Input
+								id='pdf'
+								name='pdf'
+								type='file'
+								accept='.pdf'
+								className='cursor-pointer'
+							/>
+							<Upload className='h-4 w-4 text-muted-foreground' />
+						</div>
+						<p className='text-sm text-muted-foreground'>
+							Upload a PDF file (max 10MB)
+						</p>
+						{actionData?.fieldErrors?.pdf && (
+							<p className='text-sm text-destructive'>
+								{actionData.fieldErrors.pdf}
+							</p>
+						)}
+					</div>
 					{codes.map(code => (
 						<input key={code} type='hidden' name='codes' value={code} />
 					))}
@@ -201,5 +248,14 @@ export function BookForm({
 				</form>
 			</CardContent>
 		</Card>
-	)
+		{initialValues.has_pdf && initialValues.id && (
+			<PDFPreviewModal
+				isOpen={isPDFModalOpen}
+				onClose={() => setIsPDFModalOpen(false)}
+				pdfUrl={`/api/books/${initialValues.id}/pdf/preview`}
+				bookTitle={initialValues.name || 'Book'}
+				bookId={initialValues.id}
+			/>
+		)}
+	</>)
 }

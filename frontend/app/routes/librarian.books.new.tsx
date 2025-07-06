@@ -37,7 +37,9 @@ export async function loader({ request }: ActionFunctionArgs) {
 	await requireLibrarianUser(request)
 
 	return await makeAuthenticatedRequest(request, async () => {
-		const response = await api.get('/book-categories', { params: { list: true } })
+		const response = await api.get('/book-categories', {
+			params: { list: true },
+		})
 		return json<LoaderData>({
 			categories: response.data.data,
 		})
@@ -52,6 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	const language = formData.get('language')
 	const category = formData.get('category')
 	const codes = formData.getAll('codes')
+	const pdf = formData.get('pdf') as File | null
 
 	const fieldErrors: ActionData['fieldErrors'] = {}
 	if (!name) fieldErrors.name = 'Name is required'
@@ -69,17 +72,36 @@ export async function action({ request }: ActionFunctionArgs) {
 		fieldErrors.codes = 'Duplicate codes are not allowed'
 	}
 
+	// Validate PDF if provided
+	if (pdf && pdf.size > 0) {
+		if (pdf.type !== 'application/pdf') {
+			fieldErrors.pdf = 'Only PDF files are allowed'
+		} else if (pdf.size > 10 * 1024 * 1024) {
+			fieldErrors.pdf = 'PDF file must be less than 10MB'
+		}
+	}
+
 	if (Object.keys(fieldErrors).length > 0) {
 		return json<ActionData>({ fieldErrors }, { status: 400 })
 	}
 
 	return await makeAuthenticatedRequest(request, async () => {
-		const response = await api.post('/books', {
-			name,
-			author,
-			language,
-			category,
-			codes: Array.from(codes),
+		// Create FormData for multipart request
+		const bookFormData = new FormData()
+		bookFormData.append('name', name as string)
+		bookFormData.append('author', author as string)
+		bookFormData.append('language', language as string)
+		bookFormData.append('category', category as string)
+		codes.forEach(code => bookFormData.append('codes[]', code as string))
+		
+		if (pdf && pdf.size > 0) {
+			bookFormData.append('pdf', pdf)
+		}
+
+		const response = await api.post('/books', bookFormData, {
+			headers: {
+				'Content-Type': 'multipart/form-data',
+			},
 		})
 
 		// Special error handling for code duplication

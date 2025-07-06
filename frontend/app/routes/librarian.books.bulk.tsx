@@ -2,13 +2,34 @@ import { useState, useCallback } from 'react'
 import type { ActionFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useNavigation } from '@remix-run/react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
-import { Upload, Download, CheckCircle, XCircle, AlertCircle, FileSpreadsheet, Loader2 } from 'lucide-react'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '~/components/ui/table'
+import {
+	Upload,
+	Download,
+	CheckCircle,
+	XCircle,
+	AlertCircle,
+	FileSpreadsheet,
+	Loader2,
+} from 'lucide-react'
 import { api } from '~/lib/api'
 import { makeAuthenticatedRequest } from '~/services/auth.server'
 import { Progress } from '~/components/ui/progress'
@@ -51,11 +72,15 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	return await makeAuthenticatedRequest(request, async () => {
 		try {
-			const response = await api.post<ImportResult>('/books/bulk', fileFormData, {
-				headers: {
-					'Content-Type': 'multipart/form-data',
-				},
-			})
+			const response = await api.post<ImportResult>(
+				'/books/bulk',
+				fileFormData,
+				{
+					headers: {
+						'Content-Type': 'multipart/form-data',
+					},
+				}
+			)
 			return json(response.data)
 		} catch (error: any) {
 			return json<ImportResult>({
@@ -73,48 +98,50 @@ export default function BulkImportBooks() {
 	const [fileName, setFileName] = useState<string>('')
 	const [fileSize, setFileSize] = useState<number>(0)
 	const [validationErrors, setValidationErrors] = useState<string[]>([])
-	
+
 	const isSubmitting = navigation.state === 'submitting'
 
 	const handleFileChange = useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
 			const file = event.target.files?.[0]
 			setValidationErrors([])
-			
+
 			if (file) {
 				setFileName(file.name)
 				setFileSize(file.size)
-				
+
 				// Validate file
 				const errors: string[] = []
-				
+
 				// Check file extension
 				if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
 					errors.push('File must be a CSV or TXT file')
 				}
-				
+
 				// Check file size (10MB limit)
 				const maxSize = 10 * 1024 * 1024 // 10MB
 				if (file.size > maxSize) {
 					errors.push('File size must be less than 10MB')
 				}
-				
+
 				if (errors.length > 0) {
 					setValidationErrors(errors)
 					setPreview([])
 					return
 				}
-				
+
 				const reader = new FileReader()
-				reader.onload = (e) => {
+				reader.onload = e => {
 					const text = e.target?.result as string
 					const lines = text.split('\n').filter(line => line.trim())
 					const csvData = lines.map(line => {
 						// Handle quoted values properly
 						const matches = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
-						return matches ? matches.map(cell => cell.replace(/^"|"$/g, '').trim()) : []
+						return matches
+							? matches.map(cell => cell.replace(/^"|"$/g, '').trim())
+							: []
 					})
-					
+
 					// Validate CSV structure
 					if (csvData.length === 0) {
 						errors.push('CSV file is empty')
@@ -124,7 +151,7 @@ export default function BulkImportBooks() {
 							errors.push('CSV must have "title" and "code" columns')
 						}
 					}
-					
+
 					if (errors.length > 0) {
 						setValidationErrors(errors)
 						setPreview([])
@@ -169,12 +196,16 @@ export default function BulkImportBooks() {
 				<CardHeader>
 					<CardTitle>Upload CSV File</CardTitle>
 					<CardDescription>
-						Import multiple books at once using a CSV file. Required columns: title, code. 
-						Optional columns: author, language, category.
+						Import multiple books at once using a CSV file. Required columns:
+						title, code. Optional columns: author, language, category.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<Form method='post' encType='multipart/form-data' className='space-y-4'>
+					<Form
+						method='post'
+						encType='multipart/form-data'
+						className='space-y-4'
+					>
 						<div className='space-y-2'>
 							<Label htmlFor='file'>Select CSV File</Label>
 							<div className='flex items-center gap-3'>
@@ -250,9 +281,11 @@ export default function BulkImportBooks() {
 							</div>
 						)}
 
-						<Button 
-							type='submit' 
-							disabled={!fileName || validationErrors.length > 0 || isSubmitting}
+						<Button
+							type='submit'
+							disabled={
+								!fileName || validationErrors.length > 0 || isSubmitting
+							}
 						>
 							{isSubmitting ? (
 								<>
@@ -266,12 +299,13 @@ export default function BulkImportBooks() {
 								</>
 							)}
 						</Button>
-						
+
 						{isSubmitting && (
 							<div className='space-y-2'>
 								<Progress value={30} className='w-full' />
 								<p className='text-sm text-muted-foreground text-center'>
-									Processing CSV file... This may take a few moments for large files.
+									Processing CSV file... This may take a few moments for large
+									files.
 								</p>
 							</div>
 						)}
@@ -319,7 +353,9 @@ export default function BulkImportBooks() {
 									{actionData.details.errors.length > 0 && (
 										<Card>
 											<CardHeader>
-												<CardTitle className='text-base'>Import Errors</CardTitle>
+												<CardTitle className='text-base'>
+													Import Errors
+												</CardTitle>
 											</CardHeader>
 											<CardContent>
 												<div className='space-y-2'>
@@ -357,22 +393,38 @@ export default function BulkImportBooks() {
 					<div>
 						<h4 className='font-medium mb-2'>Required Columns:</h4>
 						<ul className='list-disc list-inside text-sm text-muted-foreground space-y-1'>
-							<li><code>title</code> - The book title</li>
-							<li><code>code</code> - Book inventory code(s), comma-separated for multiple codes</li>
+							<li>
+								<code>title</code> - The book title
+							</li>
+							<li>
+								<code>code</code> - Book inventory code(s), comma-separated for
+								multiple codes
+							</li>
 						</ul>
 					</div>
 					<div>
 						<h4 className='font-medium mb-2'>Optional Columns:</h4>
 						<ul className='list-disc list-inside text-sm text-muted-foreground space-y-1'>
-							<li><code>author</code> - Author name (defaults to "Unknown")</li>
-							<li><code>language</code> - Language code: uz, ru, en, or ja (defaults to "en")</li>
-							<li><code>category</code> - Category name (will be created if doesn't exist)</li>
+							<li>
+								<code>author</code> - Author name (defaults to "Unknown")
+							</li>
+							<li>
+								<code>language</code> - Language code: uz, ru, en, or ja
+								(defaults to "en")
+							</li>
+							<li>
+								<code>category</code> - Category name (will be created if
+								doesn't exist)
+							</li>
 						</ul>
 					</div>
 					<div>
 						<h4 className='font-medium mb-2'>Tips:</h4>
 						<ul className='list-disc list-inside text-sm text-muted-foreground space-y-1'>
-							<li>Multiple book codes can be separated by commas in the code column</li>
+							<li>
+								Multiple book codes can be separated by commas in the code
+								column
+							</li>
 							<li>Empty rows will be skipped automatically</li>
 							<li>The first row should contain column headers</li>
 							<li>Maximum file size: 10MB</li>

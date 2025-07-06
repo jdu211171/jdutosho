@@ -29,8 +29,10 @@ interface Team {
 
 interface NavConfig {
 	teams: Team[]
+	admin: NavSection[]
 	librarian: NavSection[]
 	student: NavSection[]
+	teacher?: NavSection[]
 }
 
 export const navConfig: NavConfig = {
@@ -39,6 +41,54 @@ export const navConfig: NavConfig = {
 			name: 'JDU Library',
 			logo: Library,
 			plan: 'Librarian',
+		},
+	],
+	admin: [
+		{
+			title: 'Books Management',
+			url: '/admin',
+			icon: Book,
+			items: [
+				{ title: 'All Books', url: '/admin/books' },
+				{ title: 'Add New Book', url: '/admin/books/new' },
+			],
+		},
+		{
+			title: 'Rentals',
+			url: '/admin/rents',
+			icon: BookCopy,
+			items: [
+				{ title: 'All Rentals', url: '/admin/rents' },
+				{ title: 'Pending Returns', url: '/admin/rents/pending' },
+			],
+		},
+		{
+			title: 'Categories',
+			url: '/admin/categories',
+			icon: GraduationCap,
+			items: [
+				{ title: 'All Categories', url: '/admin/book-categories' },
+				{ title: 'Add Category', url: '/admin/book-categories/new' },
+			],
+		},
+		{
+			title: 'Users Management',
+			url: '/admin/users',
+			icon: UsersRound,
+			items: [
+				{ title: 'All Users', url: '/admin/users' },
+				{ title: 'Add User', url: '/admin/users/new' },
+			],
+		},
+		{
+			title: 'Settings',
+			url: '/admin/settings',
+			icon: Settings,
+			items: [
+				{ title: 'Account', url: '/admin/settings/account' },
+				{ title: 'Appearance', url: '/admin/settings/appearance' },
+				{ title: 'Credentials', url: '/admin/settings/change-password' },
+			],
 		},
 	],
 	librarian: [

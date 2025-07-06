@@ -1,9 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from './data-table-column-header'
-import type { Book } from '~/types/book'
+import type { Book } from '~/types/books'
 import { DataTableRowActions } from './data-table-row-actions'
 import { Button } from '~/components/ui/button'
-import { Eye, FileDown } from 'lucide-react'
+import { Eye, FileDown, FileText } from 'lucide-react'
+import { PDFPreviewButton } from '~/components/pdf-preview-button'
 
 export const columns: ColumnDef<Book>[] = [
 	{
@@ -11,9 +12,24 @@ export const columns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Code' />
 		),
-		cell: ({ row }) => (
-			<div className='font-medium'>{row.getValue('code')}</div>
-		),
+		cell: ({ row }) => {
+			const book = row.original
+			// Ensure we extract the code string properly
+			let firstCode = '-'
+			if (book.codes && book.codes.length > 0) {
+				// Handle both string array and object array cases
+				const firstItem = book.codes[0]
+				firstCode = typeof firstItem === 'string' ? firstItem : firstItem?.code || '-'
+			} else {
+				firstCode = book.code || '-'
+			}
+			const totalCodes = book.codes?.length || 0
+			return (
+				<div className='font-medium'>
+					{totalCodes > 1 ? `${firstCode} (+${totalCodes - 1})` : firstCode}
+				</div>
+			)
+		},
 		enableSorting: false,
 		enableHiding: false, // Keep this always visible
 	},
@@ -22,7 +38,7 @@ export const columns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Name' />
 		),
-		cell: ({ row }) => <div>{row.getValue('name')}</div>,
+		cell: ({ row }) => <div>{row.getValue('name') || '–'}</div>,
 		enableHiding: false, // Keep this always visible
 	},
 	// Make other columns hideable on mobile
@@ -31,7 +47,7 @@ export const columns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Author' />
 		),
-		cell: ({ row }) => <div>{row.getValue('author')}</div>,
+		cell: ({ row }) => <div>{row.getValue('author') || '–'}</div>,
 		enableHiding: true,
 	},
 	{
@@ -40,7 +56,7 @@ export const columns: ColumnDef<Book>[] = [
 			<DataTableColumnHeader column={column} title='Language' />
 		),
 		cell: ({ row }) => (
-			<div className='w-[80px]'>{row.getValue('language')}</div>
+			<div className='w-[80px]'>{row.getValue('language') || '–'}</div>
 		),
 		enableHiding: true,
 	},
@@ -49,7 +65,7 @@ export const columns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Category' />
 		),
-		cell: ({ row }) => <div>{row.getValue('category')}</div>,
+		cell: ({ row }) => <div>{row.getValue('category') || '–'}</div>,
 		enableHiding: true,
 	},
 	{
@@ -57,7 +73,26 @@ export const columns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Status' />
 		),
-		cell: ({ row }) => <div>{row.getValue('status')}</div>,
+		cell: ({ row }) => {
+			const book = row.original
+			const availableCount = book.available_codes_count || 0
+			const status = availableCount > 0 ? 'Available' : 'Unavailable'
+			const statusColor = availableCount > 0 ? 'text-green-600' : 'text-red-600'
+			return (
+				<div className={statusColor}>
+					{status} ({availableCount})
+				</div>
+			)
+		},
+		enableHiding: true,
+	},
+	{
+		id: 'pdf',
+		header: 'PDF',
+		cell: ({ row }) => {
+			const book = row.original
+			return <PDFPreviewButton book={book} />
+		},
 		enableHiding: true,
 	},
 	{
@@ -77,21 +112,21 @@ export const studentBookColumns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Name' />
 		),
-		cell: ({ row }) => <div>{row.getValue('name')}</div>,
+		cell: ({ row }) => <div>{row.getValue('name') || '–'}</div>,
 	},
 	{
 		accessorKey: 'author',
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Author' />
 		),
-		cell: ({ row }) => <div>{row.getValue('author')}</div>,
+		cell: ({ row }) => <div>{row.getValue('author') || '–'}</div>,
 	},
 	{
 		accessorKey: 'category',
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Category' />
 		),
-		cell: ({ row }) => <div>{row.getValue('category')}</div>,
+		cell: ({ row }) => <div>{row.getValue('category') || '–'}</div>,
 		enableHiding: true,
 	},
 	{
@@ -99,7 +134,7 @@ export const studentBookColumns: ColumnDef<Book>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} title='Language' />
 		),
-		cell: ({ row }) => <div>{row.getValue('language')}</div>,
+		cell: ({ row }) => <div>{row.getValue('language') || '–'}</div>,
 		enableHiding: true,
 	},
 	{
@@ -115,20 +150,17 @@ export const studentBookColumns: ColumnDef<Book>[] = [
 		header: 'PDF',
 		cell: ({ row }) => {
 			const book = row.original
+			if (!book.has_pdf) return null
+			
 			return (
 				<div className='flex gap-1'>
+					<PDFPreviewButton book={book} variant='ghost' size='sm' />
 					<Button
 						variant='ghost'
 						size='sm'
-						onClick={() => window.open(`/api/books/${book.id}/pdf/preview`, '_blank')}
-						title='Preview PDF'
-					>
-						<Eye className='h-4 w-4' />
-					</Button>
-					<Button
-						variant='ghost'
-						size='sm'
-						onClick={() => window.location.href = `/api/books/${book.id}/pdf/download`}
+						onClick={() =>
+							(window.location.href = `http://localhost:8000/api/books/${book.id}/pdf/download`)
+						}
 						title='Download PDF'
 					>
 						<FileDown className='h-4 w-4' />

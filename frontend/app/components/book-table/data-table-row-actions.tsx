@@ -20,11 +20,14 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from '../ui/alert-dialog'
+import { Eye, FileDown } from 'lucide-react'
+import { PDFPreviewModal } from '~/components/pdf-preview-modal'
 
 export function DataTableRowActions({ row }: { row: any }) {
 	const fetcher = useFetcher<{ success: boolean; error: string }>()
 	const isDeleting = fetcher.state !== 'idle'
 	const [isDialogOpen, setIsDialogOpen] = useState(false)
+	const [isPDFModalOpen, setIsPDFModalOpen] = useState(false)
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -54,54 +57,82 @@ export function DataTableRowActions({ row }: { row: any }) {
 	}
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button
-					variant='ghost'
-					className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
-				>
-					<DotsHorizontalIcon className='h-4 w-4' />
-					<span className='sr-only'>Open menu</span>
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align='end' className='w-[160px]'>
-				<Link to={`/librarian/books/${row.original.id}/edit`}>
-					<DropdownMenuItem>Edit</DropdownMenuItem>
-				</Link>
-				{row.original.status !== 'rent' && row.original.status !== 'lost' ? (
-					<DropdownMenuItem onSelect={handleLend}>Lend</DropdownMenuItem>
-				) : (
-					<DropdownMenuItem disabled>Lend</DropdownMenuItem>
-				)}
-				<DropdownMenuSeparator />
-				<AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-					<AlertDialogTrigger asChild>
-						<DropdownMenuItem onSelect={e => e.preventDefault()}>
-							Delete
-						</DropdownMenuItem>
-					</AlertDialogTrigger>
-					<AlertDialogContent>
-						<AlertDialogHeader>
-							<AlertDialogTitle>Delete</AlertDialogTitle>
-							<AlertDialogDescription>
-								Are you sure you want to delete the book "{row.original.name}"?
-								This action cannot be undone.
-							</AlertDialogDescription>
-						</AlertDialogHeader>
-						<AlertDialogFooter>
-							<AlertDialogCancel>Cancel</AlertDialogCancel>
-							<Button
-								type='button'
-								variant='destructive'
-								disabled={isDeleting}
-								onClick={handleDelete}
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant='ghost'
+						className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
+					>
+						<DotsHorizontalIcon className='h-4 w-4' />
+						<span className='sr-only'>Open menu</span>
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align='end' className='w-[160px]'>
+					<Link to={`/librarian/books/${row.original.id}/edit`}>
+						<DropdownMenuItem>Edit</DropdownMenuItem>
+					</Link>
+					{row.original.status !== 'rent' && row.original.status !== 'lost' ? (
+						<DropdownMenuItem onSelect={handleLend}>Lend</DropdownMenuItem>
+					) : (
+						<DropdownMenuItem disabled>Lend</DropdownMenuItem>
+					)}
+					{row.original.has_pdf && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem 
+								onSelect={() => setIsPDFModalOpen(true)}
 							>
-								{isDeleting ? 'Deleting...' : 'Delete'}
-							</Button>
-						</AlertDialogFooter>
-					</AlertDialogContent>
-				</AlertDialog>
-			</DropdownMenuContent>
-		</DropdownMenu>
+								<Eye className='mr-2 h-4 w-4' />
+								Preview PDF
+							</DropdownMenuItem>
+							<DropdownMenuItem 
+								onSelect={() => window.location.href = `http://localhost:8000/api/books/${row.original.id}/pdf/download`}
+							>
+								<FileDown className='mr-2 h-4 w-4' />
+								Download PDF
+							</DropdownMenuItem>
+						</>
+					)}
+					<DropdownMenuSeparator />
+					<AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+						<AlertDialogTrigger asChild>
+							<DropdownMenuItem onSelect={e => e.preventDefault()}>
+								Delete
+							</DropdownMenuItem>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Delete</AlertDialogTitle>
+								<AlertDialogDescription>
+									Are you sure you want to delete the book "{row.original.name}"?
+									This action cannot be undone.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<Button
+									type='button'
+									variant='destructive'
+									disabled={isDeleting}
+									onClick={handleDelete}
+								>
+									{isDeleting ? 'Deleting...' : 'Delete'}
+								</Button>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+				</DropdownMenuContent>
+			</DropdownMenu>
+			{row.original.has_pdf && (
+				<PDFPreviewModal
+					isOpen={isPDFModalOpen}
+					onClose={() => setIsPDFModalOpen(false)}
+					pdfUrl={`/api/books/${row.original.id}/pdf/preview`}
+					bookTitle={row.original.name}
+					bookId={row.original.id}
+				/>
+			)}
+		</>
 	)
 }

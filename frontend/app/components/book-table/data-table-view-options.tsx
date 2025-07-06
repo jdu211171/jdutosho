@@ -1,4 +1,3 @@
-import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
 import { MixerHorizontalIcon } from '@radix-ui/react-icons'
 import type { Table } from '@tanstack/react-table'
 
@@ -9,6 +8,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 
 interface DataTableViewOptionsProps<TData> {

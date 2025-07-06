@@ -2,7 +2,7 @@ export interface User {
 	id: number
 	loginID: string
 	name: string
-	role: 'student' | 'librarian'
+	role: 'student' | 'librarian' | 'admin' | 'teacher'
 	email: string
 	avatar?: string
 }

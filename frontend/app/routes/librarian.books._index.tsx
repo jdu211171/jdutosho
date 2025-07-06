@@ -25,6 +25,7 @@ type LoaderData = {
 	data: BooksResponse['data']
 	meta: BooksPaginationMeta
 	error: string | null
+	categories: Array<{ id: number; name: string }>
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -34,11 +35,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const search = url.searchParams.get('search') || ''
 
 	return await makeAuthenticatedRequest(request, async () => {
-		const response = await api.get<BooksResponse>('/books/codes', {
-			params: { page, search },
-		})
+		const [booksResponse, categoriesResponse] = await Promise.all([
+			api.get<BooksResponse>('/books', {
+				params: { page, search },
+			}),
+			api.get('/book-categories', {
+				params: { list: true },
+			}),
+		])
 
-		const meta = response.data.meta || {
+		const meta = booksResponse.data.meta || {
 			current_page: 1,
 			last_page: 1,
 			per_page: 10,
@@ -46,9 +52,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		}
 
 		return json<LoaderData>({
-			data: response.data.data,
+			data: booksResponse.data.data,
 			meta,
 			error: null,
+			categories: categoriesResponse.data.data || [],
 		})
 	})
 }
@@ -73,7 +80,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function BooksPage() {
-	const { data, meta, error } = useLoaderData<typeof loader>()
+	const { data, meta, error, categories } = useLoaderData<typeof loader>()
 	const { currentPage, search, handlePageChange, handleSearch } =
 		useBooksQuery()
 
@@ -120,22 +127,19 @@ export default function BooksPage() {
 				</div>
 			</div>
 
-			<div className='grid gap-6 md:grid-cols-4'>
-				<div className='md:col-span-1'>
-					<BookQuickAddForm />
-				</div>
-				<div className='md:col-span-3'>
-					<DataTable
-						data={data}
-						columns={columns}
-						pageCount={meta.last_page}
-						currentPage={currentPage}
-						onPageChange={handlePageChange}
-						onSearch={handleSearch}
-						initialSearch={search}
-					/>
-				</div>
+			<div className='mb-6'>
+				<BookQuickAddForm categories={categories} />
 			</div>
+
+			<DataTable
+				data={data}
+				columns={columns}
+				pageCount={meta.last_page}
+				currentPage={currentPage}
+				onPageChange={handlePageChange}
+				onSearch={handleSearch}
+				initialSearch={search}
+			/>
 		</div>
 	)
 }

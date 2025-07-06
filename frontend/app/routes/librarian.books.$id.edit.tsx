@@ -45,6 +45,8 @@ type LoaderData = {
 			code: string
 			status: string
 		}>
+		has_pdf?: boolean
+		pdf_url?: string
 	}
 	categories: Category[]
 }
@@ -74,6 +76,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	const language = formData.get('language')
 	const category = formData.get('category')
 	const codes = formData.getAll('codes')
+	const pdf = formData.get('pdf') as File | null
 
 	const fieldErrors: ActionData['fieldErrors'] = {}
 	if (!name) fieldErrors.name = 'Name is required'
@@ -91,18 +94,44 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		fieldErrors.codes = 'Duplicate codes are not allowed'
 	}
 
+	// Validate PDF if provided
+	if (pdf && pdf.size > 0) {
+		if (pdf.type !== 'application/pdf') {
+			fieldErrors.pdf = 'Only PDF files are allowed'
+		} else if (pdf.size > 10 * 1024 * 1024) {
+			fieldErrors.pdf = 'PDF file must be less than 10MB'
+		}
+	}
+
 	if (Object.keys(fieldErrors).length > 0) {
 		return json<ActionData>({ fieldErrors }, { status: 400 })
 	}
 
 	return await makeAuthenticatedRequest(request, async () => {
-		// Update book details
-		await api.put(`/books/${params.id}`, {
-			name,
-			author,
-			language,
-			category,
-		})
+		// Update book details with FormData if PDF is being uploaded
+		if (pdf && pdf.size > 0) {
+			const bookFormData = new FormData()
+			bookFormData.append('name', name as string)
+			bookFormData.append('author', author as string)
+			bookFormData.append('language', language as string)
+			bookFormData.append('category', category as string)
+			bookFormData.append('pdf', pdf)
+			bookFormData.append('_method', 'PUT')
+
+			await api.post(`/books/${params.id}`, bookFormData, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			})
+		} else {
+			// Update without PDF
+			await api.put(`/books/${params.id}`, {
+				name,
+				author,
+				language,
+				category,
+			})
+		}
 
 		// Update book codes
 		await api.put(`/books/${params.id}/code`, {
@@ -134,14 +163,8 @@ export default function EditBookPage() {
 		language: book.language,
 		category: book.category_id.toString(),
 		codes: book.codes.map(code => code.code),
-	}
-
-	const handlePreviewPDF = () => {
-		window.open(`/api/books/${book.id}/pdf/preview`, '_blank')
-	}
-
-	const handleDownloadPDF = () => {
-		window.location.href = `/api/books/${book.id}/pdf/download`
+		has_pdf: book.has_pdf,
+		pdf_url: book.pdf_url,
 	}
 
 	return (
@@ -152,41 +175,7 @@ export default function EditBookPage() {
 				actionData={actionData}
 				isSubmitting={isSubmitting}
 			/>
-			
-			{/* PDF Management Card */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-lg">PDF Management</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-2">
-					<div className="flex gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={handlePreviewPDF}
-							className="flex-1"
-						>
-							<Eye className="h-4 w-4 mr-2" />
-							Preview PDF
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={handleDownloadPDF}
-							className="flex-1"
-						>
-							<FileDown className="h-4 w-4 mr-2" />
-							Download PDF
-						</Button>
-					</div>
-					<p className="text-sm text-muted-foreground">
-						Manage the PDF file associated with this book
-					</p>
-				</CardContent>
-			</Card>
-			
+
 			<div className='mt-4'>
 				<Button
 					type='button'

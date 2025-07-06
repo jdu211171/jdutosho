@@ -43,7 +43,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	return await makeAuthenticatedRequest(request, async () => {
 		const response = await api.put(`/student/${bookId}/return`, {
-			action: 'return'
+			action: 'return',
 		})
 		return json({ success: response.status === 200 })
 	})

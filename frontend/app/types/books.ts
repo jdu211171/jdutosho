@@ -12,6 +12,10 @@ export type Book = {
 	count: number
 	created_at: string
 	updated_at: string
+	has_pdf?: boolean
+	pdf_url?: string
+	codes?: BookCode[]
+	available_codes_count?: number
 }
 
 export type BooksPaginationMeta = {
@@ -43,6 +47,7 @@ export interface BookFormFieldErrors {
 	language?: string
 	category?: string
 	codes?: string
+	pdf?: string
 }
 
 export interface BookFormValues {

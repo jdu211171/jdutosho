@@ -55,12 +55,45 @@ export async function makeAuthenticatedRequest<T>(
 	}
 }
 
-export async function createUserSession(token: string, user: User) {
+export async function createUserSession(
+	token: string,
+	user: User,
+	returnTo?: string | null
+) {
 	const session = await authSessionStorage.getSession()
 	session.set('token', token)
 	session.set('user', user)
 
-	const redirectTo = user.role === 'librarian' ? '/librarian' : '/student'
+	// Validate return URL to prevent open redirects
+	const isValidReturnUrl = (url: string | null | undefined): boolean => {
+		if (!url) return false
+		try {
+			const parsedUrl = new URL(url, 'http://localhost')
+			// Only allow relative URLs or same-origin URLs
+			return parsedUrl.pathname.startsWith('/')
+		} catch {
+			return false
+		}
+	}
+
+	// Use returnTo if valid, otherwise use role-based default
+	const getRoleBasedRedirect = (role: string) => {
+		switch (role) {
+			case 'admin':
+				return '/admin'
+			case 'librarian':
+				return '/librarian'
+			case 'teacher':
+				return '/teacher'
+			case 'student':
+			default:
+				return '/student'
+		}
+	}
+
+	const redirectTo = isValidReturnUrl(returnTo)
+		? returnTo!
+		: getRoleBasedRedirect(user.role)
 
 	return redirect(redirectTo, {
 		headers: {
@@ -86,7 +119,9 @@ export async function requireUser(request: Request) {
 	const userSession = await getUserFromSession(request)
 
 	if (!userSession) {
-		throw redirect('/login')
+		const url = new URL(request.url)
+		const returnTo = encodeURIComponent(url.pathname + url.search)
+		throw redirect(`/login?returnTo=${returnTo}`)
 	}
 
 	return userSession
@@ -109,6 +144,19 @@ export async function requireStudentUser(request: Request) {
 	const userSession = await requireUser(request)
 
 	if (userSession.user.role !== 'student') {
+		throw redirect('/login')
+	}
+
+	// Set the token for the API request
+	api.defaults.headers.common['Authorization'] = `Bearer ${userSession.token}`
+
+	return userSession
+}
+
+export async function requireAdminUser(request: Request) {
+	const userSession = await requireUser(request)
+
+	if (userSession.user.role !== 'admin') {
 		throw redirect('/login')
 	}
 

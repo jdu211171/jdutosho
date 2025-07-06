@@ -26,7 +26,7 @@ export function TeamSwitcher({
 		logo: React.ElementType
 		plan: string
 	}[]
-	userRole: 'student' | 'librarian'
+	userRole: 'student' | 'librarian' | 'admin' | 'teacher'
 }) {
 	const { isMobile } = useSidebar()
 	const [activeTeam, setActiveTeam] = React.useState(teams[0])
@@ -48,7 +48,13 @@ export function TeamSwitcher({
 									{activeTeam.name}
 								</span>
 								<span className='truncate text-xs'>
-									{userRole === 'librarian' ? activeTeam.plan : 'student'}
+									{userRole === 'admin'
+										? 'Administrator'
+										: userRole === 'librarian'
+											? 'Librarian'
+											: userRole === 'teacher'
+												? 'Teacher'
+												: 'Student'}
 								</span>
 							</div>
 							<ChevronsUpDown className='ml-auto' />

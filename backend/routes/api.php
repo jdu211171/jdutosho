@@ -23,6 +23,12 @@ Route::prefix('auth')->group(function () {
     Route::get('/callback/{provider}', [AuthController::class, 'handleProviderCallback']);
 });
 
+// Public PDF routes (no authentication required)
+Route::prefix('/books')->controller(BookController::class)->group(function () {
+    Route::get('/{id}/pdf/preview', 'previewPdf');
+    Route::get('/{id}/pdf/download', 'downloadPdf');
+});
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware('role:admin,librarian')->group(function () {
         Route::apiResource('users', UserController::class);
@@ -42,8 +48,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::put('/{id}', 'update');
             Route::put('/{id}/code', 'updateCodes');
             Route::delete('/{id}', 'destroy');
-            Route::get('/{id}/pdf/preview', 'previewPdf');
-            Route::get('/{id}/pdf/download', 'downloadPdf');
         });
         Route::prefix('/users')->controller(UserController::class)->group(function () {
             Route::get('/', 'index'); // Now supports ?role=student&search=query filtering

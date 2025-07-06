@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-JDU Tosho is a library management system for JDU (Jizzakh State University) that handles book rentals for students and librarians. The project uses a modern web stack with separate frontend and backend applications.
+JDU Tosho is a library management system for JDU (Japan Digital University) that handles book rentals for students and librarians. The project uses a modern web stack with separate frontend and backend applications.
 
 ## Technology Stack
 
@@ -196,3 +196,229 @@ A comprehensive API testing collection is available at `backend/httpie-collectio
 4. Test role-based access for new features
 5. Use the existing UI components in `frontend/app/components/ui/`
 6. Follow the established patterns for data tables and forms
+
+## UI Component Documentation
+
+### Kbd Component
+
+A keyboard-key primitive for displaying keyboard shortcuts and key combinations.
+
+#### Layout
+
+Import the parts, then compose them together:
+
+```tsx
+import * as Kbd from "@/components/ui/kbd";
+
+<Kbd.Root>
+  <Kbd.Key />
+  <Kbd.Separator />
+  <Kbd.Key />
+</Kbd.Root>
+```
+
+#### Built-in Key Titles
+
+The component includes built-in titles for common keyboard symbols:
+
+```tsx
+<Kbd.Root>
+  <Kbd.Key>⌘</Kbd.Key> {/* Shows "Command" on hover */}
+  <Kbd.Key>⇧</Kbd.Key> {/* Shows "Shift" on hover */}
+  <Kbd.Key>⌥</Kbd.Key> {/* Shows "Option" on hover */}
+</Kbd.Root>
+```
+
+#### Custom Key Titles
+
+You can provide custom titles for any key:
+
+```tsx
+<Kbd.Root>
+  <Kbd.Key title="Windows key">⊞</Kbd.Key>
+  <Kbd.Separator />
+  <Kbd.Key title="Lock screen">L</Kbd.Key>
+</Kbd.Root>
+```
+
+#### Multiple Keys Example
+
+```tsx
+import * as Kbd from "@/components/ui/kbd";
+
+export function KbdMultipleDemo() {
+  return (
+    <div className="grid gap-6 sm:grid-cols-2">
+      {/* IDE shortcuts */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted-foreground">IDE shortcuts</span>
+        <div className="flex flex-col gap-2">
+          <Kbd.Root>
+            <Kbd.Key>⌘</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key>⇧</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Find in files">F</Kbd.Key>
+          </Kbd.Root>
+          <Kbd.Root>
+            <Kbd.Key>⌘</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key>⌥</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Multi-cursor">↓</Kbd.Key>
+          </Kbd.Root>
+        </div>
+      </div>
+      {/* System shortcuts */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted-foreground">System shortcuts</span>
+        <div className="flex flex-col gap-2">
+          <Kbd.Root>
+            <Kbd.Key>⌘</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key>⌥</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Force quit">⎋</Kbd.Key>
+          </Kbd.Root>
+          <Kbd.Root>
+            <Kbd.Key>⌘</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key>⇧</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key>⌥</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="System preferences">P</Kbd.Key>
+          </Kbd.Root>
+        </div>
+      </div>
+      {/* Browser shortcuts */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted-foreground">Browser shortcuts</span>
+        <div className="flex flex-col gap-2">
+          <Kbd.Root>
+            <Kbd.Key>⌘</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key>⇧</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="New incognito window">N</Kbd.Key>
+          </Kbd.Root>
+          <Kbd.Root>
+            <Kbd.Key>⌘</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key>⌥</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Developer tools">I</Kbd.Key>
+          </Kbd.Root>
+        </div>
+      </div>
+      {/* With descriptions */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted-foreground">With descriptions</span>
+        <div className="flex flex-col gap-2">
+          <Kbd.Root>
+            <Kbd.Key title="Control">⌃</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Option">⌥</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Delete">⌫</Kbd.Key>
+          </Kbd.Root>
+          <Kbd.Root>
+            <Kbd.Key title="Command">⌘</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Shift">⇧</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Question mark">?</Kbd.Key>
+          </Kbd.Root>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+#### With Variants
+
+```tsx
+import * as Kbd from "@/components/ui/kbd";
+
+export function KbdVariantsDemo() {
+  return (
+    <div className="grid gap-6 sm:grid-cols-2">
+      {/* Default */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted-foreground">Default</span>
+        <Kbd.Root>
+          <Kbd.Key>⌘</Kbd.Key>
+          <Kbd.Separator />
+          <Kbd.Key>K</Kbd.Key>
+        </Kbd.Root>
+      </div>
+      {/* Outline */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted-foreground">Outline</span>
+        <Kbd.Root variant="outline">
+          <Kbd.Key>⎋</Kbd.Key>
+          <Kbd.Separator />
+          <Kbd.Key title="Escape">Esc</Kbd.Key>
+        </Kbd.Root>
+      </div>
+      {/* Ghost */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted-foreground">Ghost</span>
+        <Kbd.Root variant="ghost">
+          <Kbd.Key>⌤</Kbd.Key>
+          <Kbd.Separator />
+          <Kbd.Key title="Return">Enter</Kbd.Key>
+        </Kbd.Root>
+      </div>
+      {/* Function keys */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted-foreground">Function keys</span>
+        <div className="flex items-center gap-1">
+          <Kbd.Root variant="outline">
+            <Kbd.Key title="Function key 1">F1</Kbd.Key>
+          </Kbd.Root>
+          <Kbd.Root variant="outline">
+            <Kbd.Key title="Function key 5">F5</Kbd.Key>
+          </Kbd.Root>
+          <Kbd.Root variant="outline">
+            <Kbd.Key title="Function key 11">F11</Kbd.Key>
+          </Kbd.Root>
+        </div>
+      </div>
+      {/* Mixed variants */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted-foreground">Mixed variants</span>
+        <div className="flex items-center gap-2">
+          <Kbd.Root>
+            <Kbd.Key>⌘</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key>⇧</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Find in files">F</Kbd.Key>
+          </Kbd.Root>
+          <Kbd.Root variant="outline">
+            <Kbd.Key>⌥</Kbd.Key>
+            <Kbd.Separator />
+            <Kbd.Key title="Quick fix">.</Kbd.Key>
+          </Kbd.Root>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+#### API Reference
+
+| Component | Prop / Data Attr | Type / Value                      | Default   |
+| --------- | ---------------- | --------------------------------- | --------- |
+| Root      | asChild?         | boolean                           | false     |
+| Root      | variant?         | "default" \| "outline" \| "ghost" | "default" |
+| Root      | size?            | "default" \| "sm" \| "lg"         | "default" |
+| Root      | `[data-slot]`    | "kbd"                             | —         |
+| Key       | asChild?         | boolean                           | false     |
+| Key       | title?           | string                            | —         |
+| Key       | `[data-slot]`    | "kbd-key"                         | —         |
+| Separator | asChild?         | boolean                           | false     |
+| Separator | `[data-slot]`    | "kbd-separator"                   | —         |

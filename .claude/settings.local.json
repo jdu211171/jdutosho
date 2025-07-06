@@ -35,7 +35,20 @@
       "Bash(jq:*)",
       "Bash(/dev/null)",
       "Bash(mysql:*)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "Bash(rm:*)",
+      "Bash(bun install:*)",
+      "Bash(bun run:*)",
+      "Bash(chmod:*)",
+      "Bash(php artisan config:clear:*)",
+      "Bash(php artisan:*)",
+      "Bash(pushd:*)",
+      "Bash(popd:*)",
+      "Bash(bun list:*)",
+      "Bash(cat:*)",
+      "Bash(php:*)",
+      "Bash(bun --cwd /Users/muhammadnurislomtukhtamishhoji-zoda/Development/jdutosho/frontend run typecheck)",
+      "Bash(frontend/node_modules/.bin/tsc:*)"
     ],
     "deny": []
   }

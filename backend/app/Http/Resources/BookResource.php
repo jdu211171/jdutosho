@@ -26,8 +26,10 @@ class BookResource extends BaseResource
 
         if ($this->relationLoaded('codes')) {
             $data['codes'] = BookCodeResource::collection($this->codes);
+            $data['available_codes_count'] = $this->codes->where('status', 'exist')->count();
         } else {
             $data['count'] = $this->codes()->count();
+            $data['available_codes_count'] = $this->codes()->where('status', 'exist')->count();
         }
         return $data;
     }
